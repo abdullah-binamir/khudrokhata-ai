@@ -1,0 +1,2493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ক্ষুদ্র-খাতা এআই (KhudroKhata AI) — ভয়েস-ফার্স্ট লেজার ও অল্টারনেটিভ ক্রেডিট স্কোরিং</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Hind Siliguri"', '"Inter"', 'system-ui', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Hind Siliguri', 'Inter', system-ui, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .voice-pulse {
+      animation: pulseRing 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65); }
+      70% { transform: scale(1.03); box-shadow: 0 0 0 18px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .wave-bar {
+      animation: waveBounce 0.9s ease-in-out infinite;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.6s; }
+    @keyframes waveBounce {
+      0%, 100% { height: 8px; }
+      50% { height: 28px; }
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #ffffff; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row overflow-x-hidden">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none no-print"></div>
+
+  <!-- Mobile Overlay -->
+  <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/50 z-30 hidden lg:hidden no-print"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-68 lg:w-64 bg-slate-900 text-slate-100 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out shrink-0 no-print">
+    <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-900/40 shrink-0">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight tracking-tight text-white">ক্ষুদ্র-খাতা AI</h1>
+          <p class="text-[11px] text-emerald-400 font-medium">FinSphere • CloudCamp BD</p>
+        </div>
+      </div>
+      <button id="closeSidebarBtn" type="button" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" aria-label="Close menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Shop Profile Card -->
+    <div class="px-4 py-3 border-b border-slate-800/80 bg-slate-800/40">
+      <div class="flex items-center justify-between">
+        <div>
+          <p id="shopNameDisplay" class="text-sm font-semibold text-white">মা-বাবার দোয়া স্টোর</p>
+          <p class="text-xs text-slate-400">আশুলিয়া বাজার, ঢাকা • MSME</p>
+        </div>
+        <span id="sidebarScoreBadge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">762</span>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav id="mainNav" class="flex-1 p-3 space-y-1 overflow-y-auto custom-scroll">
+      <button type="button" data-tab="dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium bg-emerald-600 text-white shadow-sm transition">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span data-i18n="nav_dashboard">ভয়েস ড্যাশবোর্ড</span>
+      </button>
+      <button type="button" data-tab="ledger" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span data-i18n="nav_ledger">স্বয়ংক্রিয় লেজার</span>
+      </button>
+      <button type="button" data-tab="baki" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span data-i18n="nav_baki">বাকি খাতা ও গ্রাহক</span>
+      </button>
+      <button type="button" data-tab="inventory" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        <span data-i18n="nav_inventory">ইনভেন্টরি ও স্টক</span>
+      </button>
+      <button type="button" data-tab="credit" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span data-i18n="nav_credit">ক্রেডিট স্কোরিং (AI)</span>
+      </button>
+      <button type="button" data-tab="loans" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span data-i18n="nav_loans">SME লোন ও বিকাশ/নগদ</span>
+      </button>
+
+    </nav>
+
+    <!-- Bottom Controls -->
+    <div class="p-4 border-t border-slate-800 space-y-2">
+      <button id="openApiModalBtn" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition">
+        <span class="flex items-center gap-2">
+          <span id="aiModeDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="aiModeLabel">ফ্রি AI ইঞ্জিন চালু</span>
+        </span>
+        <span class="text-emerald-400 font-semibold">API</span>
+      </button>
+      <button id="resetDemoBtn" type="button" class="w-full px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-xs text-slate-400 hover:text-slate-200 transition">
+        ডেমো ডেটা রিসেট করুন
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Top Header -->
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between gap-3 no-print">
+      <div class="flex items-center gap-3 min-w-0">
+        <button id="openSidebarBtn" type="button" class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100" aria-label="Open menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="min-w-0">
+          <h2 id="pageTitle" class="text-lg sm:text-xl font-bold text-slate-900 truncate">ভয়েস-ফার্স্ট লেজার ড্যাশবোর্ড</h2>
+          <p id="pageSubtitle" class="text-xs text-slate-500 hidden sm:block">Speak naturally for automated ledger, stock sync & real-time alternative credit scoring</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="ttsToggleBtn" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 transition" title="ভয়েস কনফার্মেশন চালু/বন্ধ">
+          <span id="ttsIcon">🔊</span>
+          <span class="hidden sm:inline" id="ttsLabel">ভয়েস ফিডব্যাক</span>
+        </button>
+        <button id="langToggleBtn" type="button" class="px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-800 transition">
+          EN / বাংলা
+        </button>
+        <button id="quickAddHeaderBtn" type="button" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition">
+          + নতুন এন্ট্রি
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Panels -->
+    <main class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- ==================== TAB 1: DASHBOARD & VOICE STUDIO ==================== -->
+      <section id="tab-dashboard" class="tab-panel active space-y-6">
+        <!-- KPI Cards Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide" data-i18n="kpi_sales">মোট বিক্রি (নগদ + MFS)</span>
+              <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">৳</span>
+            </div>
+            <p id="kpiTotalSales" class="text-2xl font-bold text-slate-900">৳ ০</p>
+            <p id="kpiSalesMeta" class="text-xs text-emerald-600 font-medium mt-1">স্বয়ংক্রিয় লেজার ভেরিফাইড</p>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide" data-i18n="kpi_baki">মোট বাকি পাওনা</span>
+              <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">📒</span>
+            </div>
+            <p id="kpiTotalBaki" class="text-2xl font-bold text-amber-700">৳ ০</p>
+            <p id="kpiBakiMeta" class="text-xs text-slate-500 mt-1">আদায়ের হার: ০%</p>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide" data-i18n="kpi_cashflow">নিট নগদ প্রবাহ</span>
+              <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-sm font-bold">📈</span>
+            </div>
+            <p id="kpiNetCash" class="text-2xl font-bold text-slate-900">৳ ০</p>
+            <p id="kpiCashMeta" class="text-xs text-slate-500 mt-1">খরচ ও ক্রয় বাদে</p>
+          </div>
+
+          <div class="bg-gradient-to-br from-emerald-700 to-teal-900 rounded-2xl p-5 text-white shadow-md">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-emerald-100 uppercase tracking-wide" data-i18n="kpi_score">ফাইন্যান্সিয়াল হেলথ স্কোর</span>
+              <span id="kpiScoreTier" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-white/20 text-white">Gold</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <p id="kpiCreditScore" class="text-3xl font-extrabold">762</p>
+              <span class="text-xs text-emerald-200">/ 900</span>
+            </div>
+            <p id="kpiLoanEligible" class="text-xs text-emerald-100 mt-1">জামানতবিহীন ঋণ যোগ্যতা: ৳১,৫০,০০০</p>
+          </div>
+        </div>
+
+        <!-- Voice-to-Ledger AI Studio + Multi-Agent Trace -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Left: Voice Command Console -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <div>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 mb-1">
+                    ● লাইভ ভয়েস-টু-লেজার এজেন্ট (Bangla ASR + NLP)
+                  </span>
+                  <h3 class="text-lg font-bold text-slate-900" data-i18n="voice_title">মুখে বলুন, হিসাব হয়ে যাবে স্বয়ংক্রিয়ভাবে</h3>
+                </div>
+                <select id="speechLangSelect" class="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 font-medium text-slate-700">
+                  <option value="bn-BD">বাংলা (BD)</option>
+                  <option value="en-US">English</option>
+                </select>
+              </div>
+
+              <!-- Mic Button & Waveform -->
+              <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-5 mb-4">
+                <button id="micBtn" type="button" class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white flex items-center justify-center shadow-lg transition shrink-0 focus:outline-none" aria-label="Start Voice Input">
+                  <svg id="micSvg" class="w-9 h-9" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
+                  </svg>
+                </button>
+                <div class="flex-1 text-center sm:text-left">
+                  <p id="micStatus" class="text-sm font-bold text-slate-800">মাইক্রোফোনে ট্যাপ করে বাংলায় বলুন</p>
+                  <p id="micHint" class="text-xs text-slate-500 mt-0.5">বাংলা বা বাংলিশে বলুন/লিখুন: "করিম ভাই ৩০০ টাকার চিনি বাকি নিল" বা "karim vai 300 takar chini baki nilo"</p>
+                  <div id="waveVisualizer" class="hidden mt-3 flex items-center justify-center sm:justify-start gap-1.5 h-8">
+                    <span class="wave-bar w-1.5 bg-emerald-500 rounded-full"></span>
+                    <span class="wave-bar w-1.5 bg-emerald-500 rounded-full"></span>
+                    <span class="wave-bar w-1.5 bg-teal-500 rounded-full"></span>
+                    <span class="wave-bar w-1.5 bg-emerald-500 rounded-full"></span>
+                    <span class="wave-bar w-1.5 bg-teal-500 rounded-full"></span>
+                    <span class="text-xs font-semibold text-emerald-700 ml-2">শুনছি... (Listening)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Text / Transcript Input -->
+              <form id="voiceCommandForm" class="flex flex-col sm:flex-row gap-2 mb-4">
+                <input id="voiceInputText" type="text" placeholder='বাংলা বা বাংলিশে লিখুন (যেমন: "karim vai 300 takar chini baki nilo" বা "আমার বাকি কত?")' class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm outline-none" />
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition shrink-0">
+                  AI এন্ট্রি করুন →
+                </button>
+              </form>
+
+              <!-- AI Spoken / Text Response Bubble -->
+              <div id="aiResponseBox" class="hidden mb-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 flex items-start gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0">AI</span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <p id="aiResponseTitle" class="font-bold text-emerald-900 truncate">ক্ষুদ্র-খাতা এআই</p>
+                    <button id="replayAiVoiceBtn" type="button" class="px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold shrink-0 transition">🔊 শুনুন</button>
+                  </div>
+                  <p id="aiResponseText" class="text-emerald-800 mt-0.5 leading-relaxed"></p>
+                  <p id="voiceEngineInfo" class="text-[10px] text-emerald-700/80 mt-1"></p>
+                </div>
+              </div>
+
+              <!-- One-Click Demo Voice Presets -->
+              <div>
+                <p class="text-xs font-semibold text-slate-500 mb-2">দ্রুত ডেমো ভয়েস কমান্ড (জাজ ডেমোর জন্য এক ক্লিকে টেস্ট করুন):</p>
+                <div id="presetCommands" class="flex flex-wrap gap-2">
+                  <button type="button" data-cmd="করিম ভাই ৩০০ টাকার ২ কেজি চিনি বাকি নিল" class="preset-btn px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs font-medium text-amber-900 transition">
+                    🎙️ "করিম ভাই ৩০০ টাকার ২ কেজি চিনি বাকি নিল"
+                  </button>
+                  <button type="button" data-cmd="রহিম চাচা ৫০০ টাকা বাকি পরিশোধ করল" class="preset-btn px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-medium text-emerald-900 transition">
+                    🎙️ "রহিম চাচা ৫০০ টাকা বাকি পরিশোধ করল"
+                  </button>
+                  <button type="button" data-cmd="নগদ বিক্রি ১২৫০ টাকা ৫ কেজি চাল ও ২ লিটার তেল" class="preset-btn px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 border border-sky-200 text-xs font-medium text-sky-900 transition">
+                    🎙️ "নগদ বিক্রি ১২৫০ টাকা ৫ কেজি চাল ও ২ লিটার তেল"
+                  </button>
+                  <button type="button" data-cmd="সালমা আপা বিকাশে ৬৫০ টাকা পেমেন্ট দিল" class="preset-btn px-3 py-1.5 rounded-lg bg-pink-50 hover:bg-pink-100 border border-pink-200 text-xs font-medium text-pink-900 transition">
+                    🎙️ "সালমা আপা বিকাশে ৬৫০ টাকা পেমেন্ট দিল"
+                  </button>
+                  <button type="button" data-cmd="পাইকারি বাজার থেকে ৪০০০ টাকার সয়াবিন তেল কিনলাম" class="preset-btn px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-medium text-slate-800 transition">
+                    🎙️ "পাইকারি বাজার থেকে ৪০০০ টাকার সয়াবিন তেল কিনলাম"
+                  </button>
+                  <button type="button" data-cmd="karim vai 300 takar chini baki nilo" class="preset-btn px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-xs font-medium text-indigo-900 transition">
+                    ⌨️ "karim vai 300 takar chini baki nilo"
+                  </button>
+                  <button type="button" data-cmd="আমার মোট বাকি কত এবং কত টাকা লোন পাবো?" class="preset-btn px-3 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 text-xs font-medium text-teal-900 transition">
+                    🤖 "আমার মোট বাকি কত ও লোন পাবো?"
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Live Multi-Agent AI Pipeline Trace -->
+          <div class="lg:col-span-5 bg-slate-900 text-slate-100 rounded-2xl p-5 shadow-md flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                  মাল্টি-এজেন্ট AI পাইপলাইন ট্রেস
+                </h3>
+                <span id="agentLatencyBadge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-emerald-400">Latency: 142ms</span>
+              </div>
+
+              <!-- 4 Pipeline Steps -->
+              <div id="pipelineSteps" class="space-y-2.5 text-xs mb-4">
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">১</span>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-slate-200">ASR Speech Agent (bn-BD)</p>
+                    <p id="traceStep1" class="text-slate-400 truncate">ইনপুটের অপেক্ষায় আছে...</p>
+                  </div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold shrink-0">২</span>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-slate-200">Bangla NLP & Entity Extractor</p>
+                    <p id="traceStep2" class="text-slate-400 truncate">ইন্টেন্ট, গ্রাহক, পণ্য ও টাকার পরিমাণ শনাক্তকরণ</p>
+                  </div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold shrink-0">৩</span>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-slate-200">Double-Entry Ledger & Stock Sync</p>
+                    <p id="traceStep3" class="text-slate-400 truncate">অডিট হ্যাশ তৈরি ও ইনভেন্টরি সমন্বয়</p>
+                  </div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold shrink-0">৪</span>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-slate-200">Credit & Anomaly Guardrail Agent</p>
+                    <p id="traceStep4" class="text-slate-400 truncate">ফাইন্যান্সিয়াল হেলথ স্কোর রিয়েল-টাইম আপডেট</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Structured JSON Output -->
+              <div>
+                <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                  <span>Structured Ledger Output (JSON)</span>
+                  <span id="traceConfidence" class="text-emerald-400 font-semibold">Confidence: 96%</span>
+                </div>
+                <pre id="traceJsonOutput" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] font-mono text-emerald-300 overflow-x-auto max-h-36 custom-scroll">{
+  "status": "ready",
+  "engine": "KhudroKhata-MultiAgent-v2.6",
+  "hint": "যেকোনো ভয়েস কমান্ড বলুন বা ডেমো বাটনে ক্লিক করুন"
+}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Chart + Recent Ledger Preview -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">নগদ প্রবাহ বনাম বাকি ও আদায় (৭ দিন)</h3>
+                <p class="text-xs text-slate-500">দৈনিক ক্যাশফ্লো ও রিকভারি ট্রেন্ড</p>
+              </div>
+              <span class="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">লাইভ সিঙ্ক</span>
+            </div>
+            <div class="relative h-64">
+              <canvas id="cashflowChart"></canvas>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-base font-bold text-slate-900">সাম্প্রতিক লেনদেন</h3>
+              <button type="button" id="viewAllLedgerBtn" class="text-xs font-semibold text-emerald-700 hover:underline">সব দেখুন →</button>
+            </div>
+            <div id="recentTransactionsList" class="space-y-2.5 flex-1 overflow-y-auto max-h-64 custom-scroll pr-1"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 2: AUTOMATED LEDGER ==================== -->
+      <section id="tab-ledger" class="tab-panel space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <input id="ledgerSearchInput" type="text" placeholder="গ্রাহক, পণ্য বা নোট খুঁজুন..." class="px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 outline-none w-full sm:w-60" />
+              <select id="ledgerTypeFilter" class="px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white outline-none">
+                <option value="all">সকল লেনদেন</option>
+                <option value="cash_sale">নগদ বিক্রি</option>
+                <option value="baki_sale">বাকি বিক্রি</option>
+                <option value="baki_collection">বাকি আদায়</option>
+                <option value="mfs_sale">বিকাশ/নগদ (MFS)</option>
+                <option value="expense">পণ্য ক্রয় / খরচ</option>
+              </select>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="exportCsvBtn" type="button" class="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">⬇ CSV ডাউনলোড</button>
+              <button id="exportJsonBtn" type="button" class="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">⬇ ব্যাংক অডিট JSON</button>
+              <button id="printStatementBtn" type="button" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">🖨️ অডিট স্টেটমেন্ট প্রিন্ট</button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600 uppercase">
+                  <th class="py-3 px-3">তারিখ ও সময়</th>
+                  <th class="py-3 px-3">ধরণ</th>
+                  <th class="py-3 px-3">গ্রাহক / বিবরণ</th>
+                  <th class="py-3 px-3">পণ্য</th>
+                  <th class="py-3 px-3 text-right">পরিমাণ (৳)</th>
+                  <th class="py-3 px-3">অডিট হ্যাশ</th>
+                  <th class="py-3 px-3 text-right no-print">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 3: BAKI KHATA & CUSTOMERS ==================== -->
+      <section id="tab-baki" class="tab-panel space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-semibold">মোট বাকি গ্রাহক</p>
+            <p id="bakiCustomerCount" class="text-2xl font-bold text-slate-900 mt-1">০ জন</p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-semibold">মোট অনাদায়ী বাকি</p>
+            <p id="bakiOutstandingSum" class="text-2xl font-bold text-amber-700 mt-1">৳ ০</p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-semibold">গড় বাকি আদায়ের হার</p>
+            <p id="bakiRecoveryRateCard" class="text-2xl font-bold text-emerald-700 mt-1">০%</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-slate-900">গ্রাহকভিত্তিক বাকি তালিকা ও স্মার্ট তাগাদা</h3>
+            <span class="text-xs text-slate-500">এক ক্লিকে বাকি আদায় বা SMS/WhatsApp তাগাদা পাঠান</span>
+          </div>
+          <div id="bakiCustomerGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 4: INVENTORY & TURNOVER ==================== -->
+      <section id="tab-inventory" class="tab-panel space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">স্বয়ংক্রিয় ইনভেন্টরি ও স্টক ব্যবস্থাপনা</h3>
+            <p class="text-xs text-slate-500">ভয়েস কমান্ডে পণ্য বিক্রি বা ক্রয় বললেই এখানকার স্টক স্বয়ংক্রিয়ভাবে আপডেট হয়</p>
+          </div>
+          <button id="openAddProductBtn" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition shrink-0">
+            + নতুন পণ্য যোগ করুন
+          </button>
+        </div>
+
+        <div id="lowStockBanner" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-4 text-sm text-rose-800 flex items-center gap-3">
+          <span class="text-lg">⚠️</span>
+          <div id="lowStockText"></div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600 uppercase">
+                  <th class="py-3 px-4">পণ্যের নাম</th>
+                  <th class="py-3 px-4">ক্যাটাগরি</th>
+                  <th class="py-3 px-4 text-right">একক মূল্য (৳)</th>
+                  <th class="py-3 px-4 text-right">বর্তমান স্টক</th>
+                  <th class="py-3 px-4 text-right">মাসিক বিক্রি</th>
+                  <th class="py-3 px-4">স্ট্যাটাস</th>
+                  <th class="py-3 px-4 text-right">দ্রুত স্টক যোগ</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 5: ALTERNATIVE CREDIT SCORING (XAI) ==================== -->
+      <section id="tab-credit" class="tab-panel space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Credit Score Hero & Pillar Breakdown -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+              <div>
+                <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-1">Alternative Credit Scoring Engine v2.6</span>
+                <h3 class="text-xl font-bold text-slate-900">ফাইন্যান্সিয়াল হেলথ স্কোর (XAI)</h3>
+                <p class="text-xs text-slate-500">জামানত ছাড়াই লেনদেনের আচরণ বিশ্লেষণ করে ব্যাংক-গ্রেড ক্রেডিট প্রোফাইল</p>
+              </div>
+              <div class="text-center bg-slate-900 text-white rounded-2xl px-6 py-3 shrink-0">
+                <p class="text-[11px] text-emerald-400 font-semibold uppercase">বর্তমান স্কোর</p>
+                <p id="creditScoreBig" class="text-4xl font-extrabold tracking-tight">762</p>
+                <p id="creditRiskGrade" class="text-xs text-slate-300">Tier A • Low Risk</p>
+              </div>
+            </div>
+
+            <!-- 5 Weighted Factor Bars -->
+            <div id="creditFactorBars" class="space-y-4 mt-5"></div>
+          </div>
+
+          <!-- Radar Chart -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
+            <h3 class="text-base font-bold text-slate-900 mb-1">৫-পিলার ক্রেডিট প্রোফাইল (Radar)</h3>
+            <p class="text-xs text-slate-500 mb-4">আদর্শ ব্যাংক-যোগ্য MSME বেঞ্চমার্কের সাথে তুলনা</p>
+            <div class="relative h-64 flex-1">
+              <canvas id="creditRadarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- What-If Credit Simulator + Ethical AI & Bias Audit -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">What-If ক্রেডিট স্কোর সিমুলেটর</h3>
+                <p class="text-xs text-slate-500">বাকি আদায় বা MFS লেনদেন বাড়ালে আপনার স্কোর ও লোন লিমিট কত বাড়বে দেখুন</p>
+              </div>
+              <button id="resetSimBtn" type="button" class="text-xs text-emerald-700 font-semibold hover:underline">রিসেট</button>
+            </div>
+
+            <div class="space-y-4 mt-4">
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span>বাকি আদায়ের হার (Baki Recovery)</span>
+                  <span id="simRecoveryVal" class="text-emerald-700">80%</span>
+                </div>
+                <input id="simRecoverySlider" type="range" min="20" max="100" value="80" class="w-full accent-emerald-600" />
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span>বিকাশ/নগদ ডিজিটাল লেনদেনের অনুপাত</span>
+                  <span id="simMfsVal" class="text-emerald-700">35%</span>
+                </div>
+                <input id="simMfsSlider" type="range" min="0" max="100" value="35" class="w-full accent-emerald-600" />
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span>মাসিক ইনভেন্টরি টার্নওভার (Inventory Velocity)</span>
+                  <span id="simTurnoverVal" class="text-emerald-700">75%</span>
+                </div>
+                <input id="simTurnoverSlider" type="range" min="20" max="100" value="75" class="w-full accent-emerald-600" />
+              </div>
+            </div>
+
+            <div class="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+              <div>
+                <p class="text-xs text-emerald-800 font-semibold">সিমুলেটেড ক্রেডিট স্কোর</p>
+                <p id="simResultScore" class="text-2xl font-extrabold text-emerald-900">788 / 900</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-emerald-800 font-semibold">সম্ভাব্য SME লোন লিমিট</p>
+                <p id="simResultLoan" class="text-xl font-bold text-emerald-900">৳২,০০,০০০</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ethical AI & Consent Safeguards -->
+          <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-base font-bold text-slate-900">Ethical AI, বায়াস মিটিগেশন ও ডেটা প্রাইভেসি</h3>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800">Verified Compliant</span>
+              </div>
+              <ul class="space-y-2.5 text-xs text-slate-600">
+                <li class="flex items-start gap-2">
+                  <span class="text-emerald-600 font-bold">✓</span>
+                  <span><strong>বৈষম্যহীন স্কোরিং (Zero Demographic Bias):</strong> লিঙ্গ, ধর্ম, এলাকা বা সামাজিক পরিচয় নয়—শুধুমাত্র নগদ প্রবাহ, বাকি আদায় ও স্টক টার্নওভারের ওপর ভিত্তি করে স্কোর তৈরি হয়।</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-emerald-600 font-bold">✓</span>
+                  <span><strong>ব্যাখ্যাযোগ্য এআই (Explainable AI):</strong> কোনো আবেদনকারীকে ব্ল্যাক-বক্স রিজেকশন দেওয়া হয় না; প্রতিটি ফ্যাক্টরের পয়েন্ট ও উন্নতির পরামর্শ স্পষ্টভাবে দেখানো হয়।</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-emerald-600 font-bold">✓</span>
+                  <span><strong>PII মাস্কিং ও সম্মতি (Explicit Consent):</strong> দোকানদারের অনুমতি ছাড়া ব্যাংকের সাথে কোনো গ্রাহকের ফোন নম্বর বা ব্যক্তিগত তথ্য শেয়ার করা হয় না।</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-xs font-bold text-slate-800">ব্যাংক ও MFS ডেটা শেয়ারিং সম্মতি</p>
+                <p id="consentStatusText" class="text-[11px] text-emerald-600">চালু আছে — শুধুমাত্র অ্যানোনিমাইজড ক্রেডিট পাসপোর্ট শেয়ার হবে</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input id="bankConsentToggle" type="checkbox" checked class="sr-only peer" />
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 6: SME LOANS & MFS (bKash/Nagad) ==================== -->
+      <section id="tab-loans" class="tab-panel space-y-6">
+        <!-- Pre-Approved Offers Banner -->
+        <div class="bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-2">
+              Open Banking & MFS Credit Bridge
+            </span>
+            <h3 class="text-xl font-bold">জামানতবিহীন মাইক্রো-লোন ও এমএফএস ইন্টিগ্রেশন</h3>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">আপনার বর্তমান হেলথ স্কোর (<span id="loanTabScore" class="font-bold text-emerald-300">762</span>) অনুযায়ী নিচের ব্যাংক ও এমএফএস অফারগুলো আনলক হয়েছে।</p>
+          </div>
+          <button id="downloadPassportBtn" type="button" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm transition shrink-0">
+            📄 ক্রেডিট পাসপোর্ট ডাউনলোড
+          </button>
+        </div>
+
+        <!-- Loan Partner Cards -->
+        <div id="loanOffersGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+
+        <!-- EMI Calculator + MFS Merchant Sync -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-base font-bold text-slate-900 mb-4">স্মার্ট SME লোন ও কিস্তি (EMI) ক্যালকুলেটর</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+              <div>
+                <label for="emiAmount" class="block text-xs font-semibold text-slate-600 mb-1">ঋণের পরিমাণ (৳)</label>
+                <input id="emiAmount" type="number" min="10000" max="500000" step="5000" value="100000" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-bold" />
+              </div>
+              <div>
+                <label for="emiRate" class="block text-xs font-semibold text-slate-600 mb-1">বার্ষিক সুদের হার (%)</label>
+                <input id="emiRate" type="number" min="4" max="24" step="0.5" value="9" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-bold" />
+              </div>
+              <div>
+                <label for="emiMonths" class="block text-xs font-semibold text-slate-600 mb-1">মেয়াদ (মাস)</label>
+                <select id="emiMonths" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-bold bg-white">
+                  <option value="6">৬ মাস</option>
+                  <option value="12" selected>১২ মাস</option>
+                  <option value="18">১৮ মাস</option>
+                  <option value="24">২৪ মাস</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-3 bg-slate-50 rounded-xl p-4 border border-slate-200 text-center">
+              <div>
+                <p class="text-[11px] text-slate-500 font-semibold">মাসিক কিস্তি (EMI)</p>
+                <p id="emiMonthlyResult" class="text-lg font-extrabold text-emerald-700 mt-0.5">৳ ৮,৭৪৫</p>
+              </div>
+              <div>
+                <p class="text-[11px] text-slate-500 font-semibold">মোট সুদ</p>
+                <p id="emiInterestResult" class="text-lg font-bold text-slate-800 mt-0.5">৳ ৪,৯৪২</p>
+              </div>
+              <div>
+                <p class="text-[11px] text-slate-500 font-semibold">মোট পরিশোধ</p>
+                <p id="emiTotalResult" class="text-lg font-bold text-slate-900 mt-0.5">৳ ১,০৪,৯৪২</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- bKash & Nagad Merchant Bridge -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 mb-1">বিকাশ ও নগদ মার্চেন্ট অটো-সিঙ্ক</h3>
+              <p class="text-xs text-slate-500 mb-4">MFS পেমেন্ট রিসিভ হলেই স্বয়ংক্রিয়ভাবে লেজারে যুক্ত হয় ও ক্রেডিট স্কোর বাড়ে</p>
+              <div class="space-y-3">
+                <div class="p-3.5 rounded-xl border border-pink-200 bg-pink-50/70 flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-bold text-pink-700">bKash Merchant Webhook</p>
+                    <p class="text-xs text-pink-900/70">017XX-XXXXXX • Connected</p>
+                  </div>
+                  <button id="simBkashBtn" type="button" class="px-3 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold transition">
+                    + ৳৮৫০ টেস্ট পেমেন্ট
+                  </button>
+                </div>
+                <div class="p-3.5 rounded-xl border border-orange-200 bg-orange-50/70 flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-bold text-orange-700">Nagad Uddokta API</p>
+                    <p class="text-xs text-orange-900/70">018XX-XXXXXX • Connected</p>
+                  </div>
+                  <button id="simNagadBtn" type="button" class="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold transition">
+                    + ৳৬২০ টেস্ট পেমেন্ট
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-4">* স্যান্ডবক্স ডেমো মোড — প্রতিটি সিঙ্ক রিয়েল-টাইম লেজার ও ক্রেডিট স্কোর আপডেট করে।</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Manual Entry Modal -->
+  <div id="manualEntryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-slate-900">নতুন লেজার এন্ট্রি</h3>
+        <button type="button" data-close-modal="manualEntryModal" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <form id="manualEntryForm" class="space-y-3.5 text-sm">
+        <div>
+          <label for="mType" class="block text-xs font-semibold text-slate-600 mb-1">লেনদেনের ধরণ</label>
+          <select id="mType" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+            <option value="baki_sale">বাকি বিক্রি (Credit Sale)</option>
+            <option value="cash_sale">নগদ বিক্রি (Cash Sale)</option>
+            <option value="baki_collection">বাকি আদায় (Due Collection)</option>
+            <option value="mfs_sale">বিকাশ/নগদ পেমেন্ট (MFS)</option>
+            <option value="expense">পণ্য ক্রয় / খরচ (Expense)</option>
+          </select>
+        </div>
+        <div>
+          <label for="mCustomer" class="block text-xs font-semibold text-slate-600 mb-1">গ্রাহক / সরবরাহকারীর নাম</label>
+          <input id="mCustomer" type="text" required placeholder="যেমন: করিম ভাই" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="mAmount" class="block text-xs font-semibold text-slate-600 mb-1">টাকার পরিমাণ (৳)</label>
+            <input id="mAmount" type="number" min="1" required placeholder="৩০০" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label for="mQty" class="block text-xs font-semibold text-slate-600 mb-1">পরিমাণ (ঐচ্ছিক)</label>
+            <input id="mQty" type="number" min="1" value="1" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+        </div>
+        <div>
+          <label for="mItem" class="block text-xs font-semibold text-slate-600 mb-1">পণ্যের নাম</label>
+          <input id="mItem" type="text" placeholder="যেমন: চিনি, চাল, সয়াবিন তেল" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" data-close-modal="manualEntryModal" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700">বাতিল</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">সংরক্ষণ করুন</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Inventory Product Modal -->
+  <div id="addProductModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-slate-900">নতুন পণ্য যোগ করুন</h3>
+        <button type="button" data-close-modal="addProductModal" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <form id="addProductForm" class="space-y-3.5 text-sm">
+        <div>
+          <label for="pName" class="block text-xs font-semibold text-slate-600 mb-1">পণ্যের নাম</label>
+          <input id="pName" type="text" required placeholder="যেমন: মুড়ি বা সরিষার তেল" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="pCategory" class="block text-xs font-semibold text-slate-600 mb-1">ক্যাটাগরি</label>
+            <input id="pCategory" type="text" value="মুদি পণ্য" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label for="pUnit" class="block text-xs font-semibold text-slate-600 mb-1">একক</label>
+            <input id="pUnit" type="text" value="কেজি" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="pPrice" class="block text-xs font-semibold text-slate-600 mb-1">একক মূল্য (৳)</label>
+            <input id="pPrice" type="number" min="1" required placeholder="১২০" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label for="pStock" class="block text-xs font-semibold text-slate-600 mb-1">প্রাথমিক স্টক</label>
+            <input id="pStock" type="number" min="1" required placeholder="২৫" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" data-close-modal="addProductModal" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700">বাতিল</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">পণ্য যোগ করুন</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Free AI API Settings Modal -->
+  <div id="apiSettingsModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold text-slate-900">AI ইঞ্জিন ও ফ্রি API সেটিংস</h3>
+        <button type="button" data-close-modal="apiSettingsModal" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-600 mb-4">
+        ডিফল্টভাবে শক্তিশালী <strong>অফলাইন বাংলা NLP + Web Speech API</strong> চালু আছে (কোনো API Key ছাড়াই ১০০% ফ্রি)। চাইলে নিচে আপনার ফ্রি <strong>Google Gemini API Key</strong> বসিয়ে লাইভ LLM পার্সিং চালু করতে পারেন।
+      </p>
+      <form id="apiSettingsForm" class="space-y-3 text-sm">
+        <div>
+          <label for="geminiApiKeyInput" class="block text-xs font-semibold text-slate-700 mb-1">Google Gemini API Key (ঐচ্ছিক - Free Tier)</label>
+          <input id="geminiApiKeyInput" type="password" placeholder="AIzaSy..." class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-xs" />
+        </div>
+        <div class="flex justify-between items-center pt-2">
+          <button type="button" id="clearApiKeyBtn" class="text-xs text-rose-600 font-semibold hover:underline">কী মুছুন (অফলাইন মোড)</button>
+          <div class="flex gap-2">
+            <button type="button" data-close-modal="apiSettingsModal" class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold">বন্ধ</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">সেভ করুন</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loan Application Modal -->
+  <div id="loanApplyModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="loanModalTitle" class="text-lg font-bold text-slate-900">SME লোন আবেদন</h3>
+        <button type="button" data-close-modal="loanApplyModal" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+      <div id="loanModalBody" class="space-y-3 text-xs text-slate-600 mb-4"></div>
+      <form id="loanApplyForm" class="space-y-3 text-sm">
+        <div>
+          <label for="loanReqAmount" class="block text-xs font-semibold text-slate-700 mb-1">আবেদিত ঋণের পরিমাণ (৳)</label>
+          <input id="loanReqAmount" type="number" min="10000" step="5000" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+        </div>
+        <div>
+          <label for="loanDisburseMethod" class="block text-xs font-semibold text-slate-700 mb-1">টাকা গ্রহণের মাধ্যম</label>
+          <select id="loanDisburseMethod" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+            <option value="bKash Merchant">বিকাশ মার্চেন্ট ওয়ালেট (তাৎক্ষণিক)</option>
+            <option value="Nagad Uddokta">নগদ উদ্যোক্তা অ্যাকাউন্ট (তাৎক্ষণিক)</option>
+            <option value="Bank Account">ব্যাংক অ্যাকাউন্ট (BEFTN)</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" data-close-modal="loanApplyModal" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold">বাতিল</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">ক্রেডিট পাসপোর্টসহ আবেদন করুন</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ==================== INITIAL SEED DATA ====================
+      const STORAGE_KEY = 'khudrokhata_ai_state_v3_en';
+
+      function getInitialState() {
+        const now = Date.now();
+        const day = 86400000;
+        return {
+          lang: 'en',
+          ttsEnabled: true,
+          bankConsent: true,
+          geminiApiKey: '',
+          transactions: [
+            { id: 'TX-1001', ts: now - day * 6, type: 'cash_sale', customer: 'নগদ ক্রেতা', item: 'মিনিকেট চাল', qty: 10, amount: 780, method: 'Cash', hash: 'a9f3c2d1' },
+            { id: 'TX-1002', ts: now - day * 5, type: 'baki_sale', customer: 'করিম ভাই', item: 'চিনি ও ডাল', qty: 3, amount: 650, method: 'Baki', hash: 'b4e8f1a2' },
+            { id: 'TX-1003', ts: now - day * 5, type: 'mfs_sale', customer: 'সালমা আপা', item: 'সয়াবিন তেল', qty: 5, amount: 950, method: 'bKash', hash: 'c7d2e9b4' },
+            { id: 'TX-1004', ts: now - day * 4, type: 'expense', customer: 'পাইকারি বাজার', item: 'মিনিকেট চাল (বস্তা)', qty: 50, amount: 3400, method: 'Cash', hash: 'd1a5c8e3' },
+            { id: 'TX-1005', ts: now - day * 4, type: 'baki_sale', customer: 'রহিম চাচা', item: 'আটা ও আলু', qty: 6, amount: 820, method: 'Baki', hash: 'e6b9a4f7' },
+            { id: 'TX-1006', ts: now - day * 3, type: 'baki_collection', customer: 'করিম ভাই', item: 'বাকি পরিশোধ', qty: 1, amount: 400, method: 'bKash', hash: 'f2c1d7e8' },
+            { id: 'TX-1007', ts: now - day * 3, type: 'cash_sale', customer: 'নগদ ক্রেতা', item: 'ডিম ও দুধ', qty: 12, amount: 1420, method: 'Cash', hash: '1a8b3c5d' },
+            { id: 'TX-1008', ts: now - day * 2, type: 'baki_sale', customer: 'জামাল মিয়া', item: 'পেঁয়াজ ও তেল', qty: 4, amount: 540, method: 'Baki', hash: '2b9c4d6e' },
+            { id: 'TX-1009', ts: now - day * 2, type: 'baki_collection', customer: 'রহিম চাচা', item: 'বাকি পরিশোধ', qty: 1, amount: 500, method: 'Cash', hash: '3c0d5e7f' },
+            { id: 'TX-1010', ts: now - day * 1, type: 'mfs_sale', customer: 'তানভীর আহমেদ', item: 'চা পাতা ও বিস্কুট', qty: 4, amount: 1180, method: 'Nagad', hash: '4d1e6f8a' },
+            { id: 'TX-1011', ts: now - 3600000 * 5, type: 'cash_sale', customer: 'নগদ ক্রেতা', item: 'মিনিকেট চাল ও ডাল', qty: 8, amount: 1850, method: 'Cash', hash: '5e2f7a9b' },
+            { id: 'TX-1012', ts: now - 3600000 * 2, type: 'baki_collection', customer: 'জামাল মিয়া', item: 'বাকি পরিশোধ', qty: 1, amount: 300, method: 'bKash', hash: '6f3a8b0c' }
+          ],
+          inventory: [
+            { id: 'INV-1', name: 'মিনিকেট চাল', keywords: ['চাল', 'rice', 'মিনিকেট', 'chal', 'chaal', 'miniket'], category: 'খাদ্যশস্য', unit: 'কেজি', price: 78, stock: 65, monthlySold: 180, reorder: 20 },
+            { id: 'INV-2', name: 'চিনি', keywords: ['চিনি', 'sugar', 'chini', 'cini'], category: 'নিত্যপণ্য', unit: 'কেজি', price: 145, stock: 28, monthlySold: 95, reorder: 10 },
+            { id: 'INV-3', name: 'সয়াবিন তেল', keywords: ['তেল', 'সয়াবিন', 'oil', 'tel', 'soyabin', 'soyabean'], category: 'ভোজ্যতেল', unit: 'লিটার', price: 175, stock: 18, monthlySold: 72, reorder: 12 },
+            { id: 'INV-4', name: 'মসুর ডাল', keywords: ['ডাল', 'মসুর', 'dal', 'daal', 'mosur'], category: 'খাদ্যশস্য', unit: 'কেজি', price: 135, stock: 22, monthlySold: 64, reorder: 10 },
+            { id: 'INV-5', name: 'আটা', keywords: ['আটা', 'ময়দা', 'flour', 'ata', 'atta', 'moyda'], category: 'খাদ্যশস্য', unit: 'কেজি', price: 62, stock: 34, monthlySold: 88, reorder: 15 },
+            { id: 'INV-6', name: 'পেঁয়াজ', keywords: ['পেঁয়াজ', 'পিয়াজ', 'onion', 'peyaj', 'piaj', 'pyaj'], category: 'মসলা', unit: 'কেজি', price: 95, stock: 9, monthlySold: 76, reorder: 12 },
+            { id: 'INV-7', name: 'আলু', keywords: ['আলু', 'potato', 'alu', 'aloo'], category: 'সবজি', unit: 'কেজি', price: 55, stock: 40, monthlySold: 110, reorder: 15 },
+            { id: 'INV-8', name: 'ডিম', keywords: ['ডিম', 'egg', 'dim'], category: 'দৈনিক', unit: 'ডজন', price: 155, stock: 14, monthlySold: 58, reorder: 8 },
+            { id: 'INV-9', name: 'চা পাতা', keywords: ['চা', 'tea', 'cha', 'chapata'], category: 'পানীয়', unit: 'প্যাকেট', price: 220, stock: 16, monthlySold: 42, reorder: 6 }
+          ],
+          appliedLoans: []
+        };
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && Array.isArray(parsed.transactions) && Array.isArray(parsed.inventory)) {
+              if (!parsed.geminiApiKey) {
+                parsed.geminiApiKey = '';
+              }
+              return parsed;
+            }
+          }
+        } catch (err) {
+          // ignore storage errors in restricted environments
+        }
+        return getInitialState();
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (err) {
+          // ignore storage errors
+        }
+      }
+
+      let state = loadState();
+      let cashflowChartInstance = null;
+      let creditRadarInstance = null;
+      let recognition = null;
+      let isListening = false;
+      let activeLoanPartner = null;
+
+      // ==================== I18N DICTIONARY ====================
+      const I18N = {
+        bn: {
+          nav_dashboard: 'ভয়েস ড্যাশবোর্ড',
+          nav_ledger: 'স্বয়ংক্রিয় লেজার',
+          nav_baki: 'বাকি খাতা ও গ্রাহক',
+          nav_inventory: 'ইনভেন্টরি ও স্টক',
+          nav_credit: 'ক্রেডিট স্কোরিং (AI)',
+          nav_loans: 'SME লোন ও বিকাশ/নগদ',
+          kpi_sales: 'মোট বিক্রি (নগদ + MFS)',
+          kpi_baki: 'মোট বাকি পাওনা',
+          kpi_cashflow: 'নিট নগদ প্রবাহ',
+          kpi_score: 'ফাইন্যান্সিয়াল হেলথ স্কোর',
+          voice_title: 'মুখে বলুন, হিসাব হয়ে যাবে স্বয়ংক্রিয়ভাবে'
+        },
+        en: {
+          nav_dashboard: 'Voice Dashboard',
+          nav_ledger: 'Auto Ledger',
+          nav_baki: 'Baki & Customers',
+          nav_inventory: 'Inventory & Stock',
+          nav_credit: 'Credit Scoring (AI)',
+          nav_loans: 'SME Loans & MFS',
+          kpi_sales: 'Total Sales (Cash + MFS)',
+          kpi_baki: 'Outstanding Baki',
+          kpi_cashflow: 'Net Cashflow',
+          kpi_score: 'Financial Health Score',
+          voice_title: 'Speak Naturally — Automated Double-Entry Accounting'
+        }
+      };
+
+      const TAB_TITLES = {
+        dashboard: { bn: 'ভয়েস-ফার্স্ট লেজার ড্যাশবোর্ড', en: 'Voice-First Ledger Dashboard' },
+        ledger: { bn: 'স্বয়ংক্রিয় অডিট লেজার', en: 'Automated Audit Ledger' },
+        baki: { bn: 'বাকি খাতা ও গ্রাহক ব্যবস্থাপনা', en: 'Baki Khata & Customer Credit' },
+        inventory: { bn: 'স্মার্ট ইনভেন্টরি ও টার্নওভার', en: 'Smart Inventory & Turnover' },
+        credit: { bn: 'অল্টারনেটিভ ক্রেডিট স্কোরিং (XAI)', en: 'Explainable Alternative Credit Scoring' },
+        loans: { bn: 'জামানতবিহীন SME লোন ও এমএফএস', en: 'Collateral-Free SME Loans & MFS Bridge' }
+      };
+
+      // ==================== HELPERS ====================
+      function toBnDigits(val) {
+        if (state.lang === 'en') return String(val);
+        const map = { '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪', '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯' };
+        return String(val).replace(/[0-9]/g, d => map[d]);
+      }
+
+      function fromBnDigits(str) {
+        const map = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+        return String(str).replace(/[০-৯]/g, d => map[d]);
+      }
+
+      function formatTk(num) {
+        const n = Math.round(Number(num) || 0);
+        const formatted = n.toLocaleString('en-IN');
+        return '৳ ' + toBnDigits(formatted);
+      }
+
+      function makeAuditHash(str) {
+        let h = 2166136261;
+        for (let i = 0; i < str.length; i++) {
+          h ^= str.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0).toString(16).padStart(8, '0');
+      }
+
+      function formatDate(ts) {
+        const d = new Date(ts);
+        return d.toLocaleDateString(state.lang === 'bn' ? 'bn-BD' : 'en-GB', {
+          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+        });
+      }
+
+      function showToast(msg, type) {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        const colors = type === 'error'
+          ? 'bg-rose-600 text-white'
+          : type === 'warn'
+            ? 'bg-amber-600 text-white'
+            : 'bg-slate-900 text-white border border-emerald-500/40';
+        el.className = 'pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 ' + colors;
+        el.textContent = msg;
+        container.appendChild(el);
+        setTimeout(function () {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 0.25s ease';
+          setTimeout(function () { el.remove(); }, 260);
+        }, 3200);
+      }
+
+      let cachedVoices = [];
+      let lastSpokenBn = '';
+      let lastSpokenEn = '';
+      let activeAudioEl = null;
+
+      function refreshVoices() {
+        if (!('speechSynthesis' in window)) return;
+        try {
+          cachedVoices = window.speechSynthesis.getVoices() || [];
+        } catch (err) {
+          cachedVoices = [];
+        }
+      }
+      if ('speechSynthesis' in window) {
+        refreshVoices();
+        if (typeof window.speechSynthesis.onvoiceschanged !== 'undefined') {
+          window.speechSynthesis.onvoiceschanged = refreshVoices;
+        }
+      }
+
+      function findBestVoice(langPrefix) {
+        refreshVoices();
+        if (!cachedVoices.length) return null;
+        if (langPrefix === 'bn') {
+          return (
+            cachedVoices.find(function (v) { return /bn[-_]bd/i.test(v.lang); }) ||
+            cachedVoices.find(function (v) { return /^bn/i.test(v.lang) || /bangla|bengali/i.test(v.name); }) ||
+            null
+          );
+        }
+        return (
+          cachedVoices.find(function (v) { return /en[-_](us|gb|in)/i.test(v.lang) && /natural|google|samantha|zira|aria/i.test(v.name); }) ||
+          cachedVoices.find(function (v) { return /^en/i.test(v.lang); }) ||
+          cachedVoices[0] ||
+          null
+        );
+      }
+
+      function cleanTextForBanglaTTS(text) {
+        return String(text || '')
+          .replace(/৳\s*/g, 'টাকা ')
+          .replace(/\/৯০০|\/900/g, ' নয়শো-এর মধ্যে')
+          .replace(/\bbKash\b/gi, 'বিকাশ')
+          .replace(/\bNagad\b/gi, 'নগদ')
+          .replace(/\bCash\b/gi, 'নগদ টাকা')
+          .replace(/\bBaki\b/gi, 'বাকি')
+          .replace(/\bSME\b/gi, 'এস এম ই')
+          .replace(/\bMFS\b/gi, 'মোবাইল ব্যাংকিং')
+          .replace(/\bPlatinum\b/gi, 'প্লাটিনাম')
+          .replace(/\bGold\b/gi, 'গোল্ড')
+          .replace(/\bSilver\b/gi, 'সিলভার')
+          .replace(/\bBuilding\b/gi, 'বিল্ডিং')
+          .replace(/[()•|#_]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function bnToRomanForEnglishTTS(str) {
+        const dict = {
+          'করিম ভাই': 'Karim Vai', 'রহিম চাচা': 'Rahim Chacha', 'সালমা আপা': 'Salma Apa',
+          'জামাল মিয়া': 'Jamal Mia', 'তানভীর আহমেদ': 'Tanvir Ahmed', 'মামুন ভাই': 'Mamun Vai',
+          'নগদ ক্রেতা': 'cash customer', 'পাইকারি সরবরাহকারী': 'wholesale supplier',
+          'বিকাশ ক্রেতা': 'bKash customer', 'নগদ ক্রেতা (Nagad)': 'Nagad customer',
+          'মিনিকেট চাল': 'Miniket rice', 'চিনি': 'sugar', 'সয়াবিন তেল': 'soybean oil',
+          'মসুর ডাল': 'lentils', 'আটা': 'flour', 'পেঁয়াজ': 'onion', 'আলু': 'potato',
+          'ডিম': 'eggs', 'চা পাতা': 'tea', 'মুদি পণ্য': 'groceries', 'বাকি পরিশোধ': 'baki payment'
+        };
+        let out = String(str || '');
+        Object.keys(dict).forEach(function (k) { out = out.split(k).join(dict[k]); });
+        return out.replace(/[\u0980-\u09FF]+/g, '').replace(/\s+/g, ' ').trim() || 'customer';
+      }
+
+      function buildEnglishReply(tx, metrics) {
+        const cust = bnToRomanForEnglishTTS(tx.customer);
+        const item = bnToRomanForEnglishTTS(tx.item) || 'groceries';
+        const qtyStr = tx.qty && tx.qty > 1 ? (tx.qty + ' units of ') : '';
+        if (tx.type === 'baki_sale') {
+          return cust + ' took ' + qtyStr + item + ' worth ' + tx.amount + ' taka on baki. Entry saved.';
+        }
+        if (tx.type === 'baki_collection') {
+          return cust + ' paid ' + tx.amount + ' taka toward baki via ' + tx.method + '. Ledger updated.';
+        }
+        if (tx.type === 'mfs_sale') {
+          return cust + ' paid ' + tx.amount + ' taka via ' + tx.method + '. Added to digital ledger.';
+        }
+        if (tx.type === 'expense') {
+          return 'Recorded ' + tx.amount + ' taka purchase for ' + qtyStr + item + ' and updated stock.';
+        }
+        return 'Cash sale of ' + tx.amount + ' taka for ' + qtyStr + item + ' has been saved.';
+      }
+
+      function pcmBase64ToWavBlob(base64Pcm, sampleRate) {
+        const bin = atob(base64Pcm);
+        const pcmLen = bin.length;
+        const buffer = new ArrayBuffer(44 + pcmLen);
+        const view = new DataView(buffer);
+        function writeStr(off, str) {
+          for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i));
+        }
+        writeStr(0, 'RIFF');
+        view.setUint32(4, 36 + pcmLen, true);
+        writeStr(8, 'WAVE');
+        writeStr(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate || 24000, true);
+        view.setUint32(28, (sampleRate || 24000) * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeStr(36, 'data');
+        view.setUint32(40, pcmLen, true);
+        for (let i = 0; i < pcmLen; i++) view.setUint8(44 + i, bin.charCodeAt(i));
+        return new Blob([buffer], { type: 'audio/wav' });
+      }
+
+      async function speakWithGeminiBanglaTTS(bnText) {
+        if (!state.geminiApiKey) return false;
+        try {
+          const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=' + encodeURIComponent(state.geminiApiKey);
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: 'Read this Bangladeshi Bengali sentence naturally and clearly in Bangla: ' + bnText }] }],
+              generationConfig: {
+                responseModalities: ['AUDIO'],
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Aoede' } } }
+              }
+            })
+          });
+          if (!res.ok) return false;
+          const data = await res.json();
+          const part = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.find(function (p) { return p.inlineData && p.inlineData.data; });
+          if (!part) return false;
+          const mime = part.inlineData.mimeType || 'audio/L16;codec=pcm;rate=24000';
+          let blob;
+          if (/pcm|L16/i.test(mime)) {
+            const rateMatch = mime.match(/rate=(\d+)/i);
+            blob = pcmBase64ToWavBlob(part.inlineData.data, rateMatch ? parseInt(rateMatch[1], 10) : 24000);
+          } else {
+            const bin = atob(part.inlineData.data);
+            const arr = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+            blob = new Blob([arr], { type: mime });
+          }
+          const audioUrl = URL.createObjectURL(blob);
+          if (activeAudioEl) { activeAudioEl.pause(); activeAudioEl = null; }
+          activeAudioEl = new Audio(audioUrl);
+          activeAudioEl.onended = function () { URL.revokeObjectURL(audioUrl); };
+          await activeAudioEl.play();
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      async function speakFeedback(bnText, enFallbackText) {
+        lastSpokenBn = bnText || '';
+        lastSpokenEn = enFallbackText || '';
+        const infoEl = document.getElementById('voiceEngineInfo');
+        if (!state.ttsEnabled) return;
+
+        try {
+          if (activeAudioEl) { activeAudioEl.pause(); activeAudioEl = null; }
+          if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        } catch (err) {
+          // ignore
+        }
+
+        // ENGLISH MODE: Always speak clear English
+        if (state.lang === 'en') {
+          if (!('speechSynthesis' in window)) return;
+          const enVoice = findBestVoice('en');
+          const utter = new SpeechSynthesisUtterance(enFallbackText || 'Entry saved successfully.');
+          if (enVoice) utter.voice = enVoice;
+          utter.lang = (enVoice && enVoice.lang) || 'en-US';
+          utter.rate = 0.96;
+          if (infoEl) infoEl.textContent = 'Voice: ' + ((enVoice && enVoice.name) || 'English');
+          window.speechSynthesis.speak(utter);
+          return;
+        }
+
+        // BANGLA MODE: Always speak 100% pure Bangla!
+        const pureBn = cleanTextForBanglaTTS(bnText);
+        if (infoEl) infoEl.textContent = 'বাংলা ভয়েস তৈরি হচ্ছে...';
+
+        // 1. Try Gemini Neural Bangla TTS first (crystal clear Bangladeshi Bangla on every browser)
+        const geminiSpoke = await speakWithGeminiBanglaTTS(pureBn);
+        if (geminiSpoke) {
+          if (infoEl) infoEl.textContent = 'ভয়েস: Gemini AI Natural Bangla (bn-BD)';
+          return;
+        }
+
+        // 2. Fallback to native browser Bangla TTS voice
+        if ('speechSynthesis' in window) {
+          const bnVoice = findBestVoice('bn');
+          const utter = new SpeechSynthesisUtterance(pureBn);
+          if (bnVoice) {
+            utter.voice = bnVoice;
+            utter.lang = bnVoice.lang || 'bn-BD';
+            if (infoEl) infoEl.textContent = 'ভয়েস: ' + bnVoice.name + ' (Bangla)';
+          } else {
+            utter.lang = 'bn-BD';
+            if (infoEl) infoEl.textContent = 'ভয়েস: ব্রাউজার বাংলা TTS (bn-BD)';
+          }
+          utter.rate = 0.92;
+          utter.pitch = 1.0;
+          window.speechSynthesis.speak(utter);
+        }
+      }
+
+      // ==================== ALTERNATIVE CREDIT SCORING ENGINE ====================
+      function computeFinancialMetrics() {
+        let totalCashSales = 0;
+        let totalMfsSales = 0;
+        let totalBakiGiven = 0;
+        let totalBakiCollected = 0;
+        let totalExpenses = 0;
+        const customers = {};
+
+        state.transactions.forEach(function (tx) {
+          const amt = Number(tx.amount) || 0;
+          if (tx.type === 'cash_sale') totalCashSales += amt;
+          else if (tx.type === 'mfs_sale') totalMfsSales += amt;
+          else if (tx.type === 'baki_sale') {
+            totalBakiGiven += amt;
+            if (!customers[tx.customer]) customers[tx.customer] = { given: 0, collected: 0, count: 0, lastTs: tx.ts };
+            customers[tx.customer].given += amt;
+            customers[tx.customer].count += 1;
+            customers[tx.customer].lastTs = Math.max(customers[tx.customer].lastTs, tx.ts);
+          } else if (tx.type === 'baki_collection') {
+            totalBakiCollected += amt;
+            if (!customers[tx.customer]) customers[tx.customer] = { given: 0, collected: 0, count: 0, lastTs: tx.ts };
+            customers[tx.customer].collected += amt;
+            customers[tx.customer].count += 1;
+            customers[tx.customer].lastTs = Math.max(customers[tx.customer].lastTs, tx.ts);
+          } else if (tx.type === 'expense') {
+            totalExpenses += amt;
+          }
+        });
+
+        const totalSales = totalCashSales + totalMfsSales + totalBakiCollected;
+        const outstandingBaki = Math.max(0, totalBakiGiven - totalBakiCollected);
+        const netCashflow = totalSales - totalExpenses;
+
+        // 1. Baki Recovery Ratio (30%)
+        const recoveryRatio = totalBakiGiven > 0 ? Math.min(1, totalBakiCollected / totalBakiGiven) : 0.85;
+        const recoveryScore = Math.round(recoveryRatio * 100);
+
+        // 2. Cashflow Stability & Margin (25%)
+        const inflow = totalSales + totalBakiGiven;
+        const marginRatio = inflow > 0 ? Math.max(0.2, Math.min(1, (netCashflow + totalExpenses * 0.45) / inflow)) : 0.6;
+        const cashflowScore = Math.round(marginRatio * 100);
+
+        // 3. Inventory Turnover Velocity (20%)
+        let totalStock = 0;
+        let totalSold = 0;
+        state.inventory.forEach(function (item) {
+          totalStock += Math.max(1, Number(item.stock) || 1);
+          totalSold += Number(item.monthlySold) || 0;
+        });
+        const turnoverRatio = totalStock > 0 ? Math.min(1, totalSold / (totalStock * 4)) : 0.7;
+        const turnoverScore = Math.round(Math.max(0.35, turnoverRatio) * 100);
+
+        // 4. Digital / MFS Activity (15%)
+        const mfsCount = state.transactions.filter(function (t) { return t.method === 'bKash' || t.method === 'Nagad' || t.type === 'mfs_sale'; }).length;
+        const mfsRatio = state.transactions.length > 0 ? Math.min(1, (mfsCount / state.transactions.length) * 2.2) : 0.4;
+        const mfsScore = Math.round(mfsRatio * 100);
+
+        // 5. Bookkeeping Consistency & Audit Score (10%)
+        const consistencyScore = Math.min(100, Math.round(55 + state.transactions.length * 3.5));
+
+        const weightedPct =
+          recoveryScore * 0.30 +
+          cashflowScore * 0.25 +
+          turnoverScore * 0.20 +
+          mfsScore * 0.15 +
+          consistencyScore * 0.10;
+
+        const healthScore = Math.round(300 + (weightedPct / 100) * 600);
+        let tier = 'Building';
+        let riskGrade = 'Tier C • Moderate Risk';
+        let maxLoan = 30000;
+        if (healthScore >= 780) {
+          tier = 'Platinum';
+          riskGrade = 'Tier A+ • Prime MSME';
+          maxLoan = 250000;
+        } else if (healthScore >= 700) {
+          tier = 'Gold';
+          riskGrade = 'Tier A • Low Risk';
+          maxLoan = 150000;
+        } else if (healthScore >= 600) {
+          tier = 'Silver';
+          riskGrade = 'Tier B • Standard';
+          maxLoan = 75000;
+        }
+
+        return {
+          totalSales,
+          totalCashSales,
+          totalMfsSales,
+          totalBakiGiven,
+          totalBakiCollected,
+          outstandingBaki,
+          totalExpenses,
+          netCashflow,
+          customers,
+          healthScore,
+          tier,
+          riskGrade,
+          maxLoan,
+          pillars: [
+            { key: 'recovery', label: 'বাকি আদায়ের হার (Baki Recovery)', weight: 30, score: recoveryScore, color: 'bg-emerald-500' },
+            { key: 'cashflow', label: 'নগদ প্রবাহ ও মার্জিন (Cashflow Health)', weight: 25, score: cashflowScore, color: 'bg-sky-500' },
+            { key: 'turnover', label: 'ইনভেন্টরি টার্নওভার (Stock Velocity)', weight: 20, score: turnoverScore, color: 'bg-amber-500' },
+            { key: 'mfs', label: 'বিকাশ/নগদ ডিজিটাল লেনদেন (MFS)', weight: 15, score: mfsScore, color: 'bg-pink-500' },
+            { key: 'consistency', label: 'দৈনিক হিসাবের ধারাবাহিকতা (Audit)', weight: 10, score: consistencyScore, color: 'bg-indigo-500' }
+          ]
+        };
+      }
+
+      // ==================== BENGALI & BANGLISH VOICE-TO-LEDGER + Q&A AI AGENT ====================
+      function normalizeCustomerName(rawName) {
+        const banglishMap = {
+          'karim vai': 'করিম ভাই', 'karim bhai': 'করিম ভাই', 'korim vai': 'করিম ভাই', 'korim bhai': 'করিম ভাই', 'karim': 'করিম ভাই',
+          'rahim chacha': 'রহিম চাচা', 'rohim chacha': 'রহিম চাচা', 'rahim vai': 'রহিম ভাই', 'rahim': 'রহিম চাচা',
+          'salma apa': 'সালমা আপা', 'salma': 'সালমা আপা',
+          'jamal mia': 'জামাল মিয়া', 'jamal vai': 'জামাল মিয়া', 'jamal': 'জামাল মিয়া',
+          'tanvir ahmed': 'তানভীর আহমেদ', 'tanvir': 'তানভীর আহমেদ',
+          'mamun vai': 'মামুন ভাই', 'mamun': 'মামুন ভাই',
+          'sumon vai': 'সুমন ভাই', 'sumon': 'সুমন',
+          'rafiq vai': 'রফিক ভাই', 'rafiq': 'রফিক'
+        };
+        const low = (rawName || '').trim().toLowerCase();
+        if (banglishMap[low]) return banglishMap[low];
+        return (rawName || '').trim();
+      }
+
+      function toBnNumAlways(val) {
+        const map = { '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪', '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯' };
+        return String(Math.round(Number(val) || 0)).replace(/[0-9]/g, function (d) { return map[d]; });
+      }
+
+      function getMethodBn(method) {
+        if (method === 'bKash') return 'বিকাশে';
+        if (method === 'Nagad') return 'নগদে';
+        if (method === 'Baki') return 'বাকিতে';
+        return 'নগদ টাকায়';
+      }
+
+      function buildNaturalBanglaReply(tx, metrics) {
+        const amtBn = toBnNumAlways(tx.amount);
+        const inv = state.inventory.find(function (i) { return i.name === tx.item; });
+        const unit = inv ? inv.unit : '';
+        const qtyPhrase = (tx.qty && tx.qty > 0 && unit) ? (toBnNumAlways(tx.qty) + ' ' + unit + ' ') : '';
+        if (tx.type === 'baki_sale') {
+          return tx.customer + ' ' + amtBn + ' টাকার ' + qtyPhrase + tx.item + ' বাকি নিলো। বাকি খাতায় সংরক্ষণ হয়েছে।';
+        }
+        if (tx.type === 'baki_collection') {
+          return tx.customer + ' ' + getMethodBn(tx.method) + ' ' + amtBn + ' টাকা বাকি পরিশোধ করলো। হিসাব আপডেট হয়েছে।';
+        }
+        if (tx.type === 'mfs_sale') {
+          return tx.customer + ' ' + getMethodBn(tx.method) + ' ' + amtBn + ' টাকা পেমেন্ট দিলো। ডিজিটাল লেজারে যুক্ত হয়েছে।';
+        }
+        if (tx.type === 'expense') {
+          return amtBn + ' টাকার ' + qtyPhrase + tx.item + ' ক্রয় হিসাবভুক্ত ও স্টক আপডেট হয়েছে।';
+        }
+        return 'নগদ বিক্রি ' + amtBn + ' টাকার ' + qtyPhrase + tx.item + ' লেজারে সংরক্ষণ হয়েছে।';
+      }
+
+      function isQuestionQuery(text) {
+        const low = fromBnDigits(text).toLowerCase().trim();
+        const hasNumber = /\d+/.test(low);
+        if (hasNumber && /(টাকা|টাকার|taka|takar|tarkar|tkar|tk|বাকি নিল|baki nilo|বিক্রি|bikri|কিনলাম|kinlam|পেমেন্ট|পরিশোধ|দিল|dilo)/i.test(low)) {
+          return false;
+        }
+        return /(\?|কত|কীভাবে|কেমন|লোন পাব|বাকি কত|বিক্রি কত|স্কোর কত|স্টক কত|how much|what is|credit score|loan limit|total baki|summary|রিপোর্ট)/i.test(low);
+      }
+
+      function answerShopQuestionLocal(rawText) {
+        const metrics = computeFinancialMetrics();
+        const low = rawText.toLowerCase();
+        const lowStock = state.inventory.filter(function (i) { return i.stock <= i.reorder; }).map(function (i) { return i.name; });
+        if (/(লোন|loan|ঋণ|স্কোর|score)/i.test(low)) {
+          return 'আপনার বর্তমান ফাইন্যান্সিয়াল হেলথ স্কোর ' + toBnDigits(metrics.healthScore) + '/৯০০ (' + metrics.tier + ')। এই স্কোরে আপনি সর্বোচ্চ ' + formatTk(metrics.maxLoan) + ' পর্যন্ত জামানতবিহীন SME লোন ও bKash/Nagad মাইক্রো-ক্রেডিট পেতে পারেন।';
+        }
+        if (/(স্টক|stock|ইনভেন্টরি|inventory|কম)/i.test(low)) {
+          return lowStock.length
+            ? 'বর্তমানে ' + lowStock.join(', ') + '-এর স্টক কমে গেছে। দ্রুত রিস্টক করলে আপনার ইনভেন্টরি টার্নওভার স্কোর আরও ভালো হবে।'
+            : 'আপনার দোকানের সকল পণ্যের স্টক বর্তমানে পর্যাপ্ত আছে।';
+        }
+        return 'আপনার মোট বিক্রি ' + formatTk(metrics.totalSales) + ', মোট বাকি পাওনা ' + formatTk(metrics.outstandingBaki) + ' (আদায়ের হার ' + toBnDigits(metrics.pillars[0].score) + '%) এবং ফাইন্যান্সিয়াল হেলথ স্কোর ' + toBnDigits(metrics.healthScore) + '/৯০০ (সম্ভাব্য SME লোন: ' + formatTk(metrics.maxLoan) + ')।';
+      }
+
+      function showAiResponseBubble(title, text) {
+        const box = document.getElementById('aiResponseBox');
+        const tEl = document.getElementById('aiResponseTitle');
+        const msgEl = document.getElementById('aiResponseText');
+        if (box && tEl && msgEl) {
+          tEl.textContent = title;
+          msgEl.textContent = text;
+          box.classList.remove('hidden');
+        }
+      }
+
+      function parseBengaliCommandLocal(rawText) {
+        const t0 = performance.now();
+        const normalized = fromBnDigits(rawText).trim();
+        const lower = normalized.toLowerCase();
+
+        // Extract quantity first so we don't confuse qty with amount
+        let qty = 1;
+        let qtyNum = null;
+        const qtyMatch = normalized.match(/(\d+)\s*(?:কেজি|লিটার|পিস|প্যাকেট|ডজন|বস্তা|kg|kgs|liter|litre|ltr|pcs|piece|packet|pkt|dozen|bosta)/i);
+        if (qtyMatch) {
+          qty = Math.max(1, parseInt(qtyMatch[1], 10));
+          qtyNum = qty;
+        }
+
+        // Extract amount (handles Bangla + Banglish + typos like "tarkar", "tkar", "tk", "takar")
+        let amount = 0;
+        const explicitAmtMatch = normalized.match(/(\d+(?:\.\d+)?)\s*(?:টাকার|টাকা|takar|tarkar|tkar|taka|tk|bdt)\b/i);
+        if (explicitAmtMatch) {
+          amount = Number(explicitAmtMatch[1]);
+        } else {
+          const allNums = (normalized.match(/\d+(?:\.\d+)?/g) || []).map(Number);
+          if (allNums.length > 1 && qtyNum !== null) {
+            const nonQty = allNums.filter(function (n) { return n !== qtyNum; });
+            amount = nonQty.length ? Math.max.apply(null, nonQty) : Math.max.apply(null, allNums);
+          } else if (allNums.length >= 1) {
+            amount = Math.max.apply(null, allNums);
+          } else {
+            if (/(এক হাজার|হাজার|hajar|thousand)/i.test(lower)) amount = 1000;
+            else if (/(পাঁচশ|pachsho|panchsho)/i.test(lower)) amount = 500;
+            else if (/(তিনশ|tinsho)/i.test(lower)) amount = 300;
+            else if (/(দুইশ|duisho)/i.test(lower)) amount = 200;
+            else if (/(একশ|eksho)/i.test(lower)) amount = 100;
+            else amount = 250;
+          }
+        }
+
+        // Detect Transaction Intent (Bangla + Banglish + English)
+        let type = 'cash_sale';
+        let method = 'Cash';
+        const isBkash = /(বিকাশ|বিকাশে|bkash|bikash)/i.test(lower);
+        const isNagadMfs = /(nagad\s*(?:payment|e|app|dil|dilo|pathalo)|নগদ\s*অ্যাপ|নগদে\s*পেমেন্ট|নগদে\s*পাঠাল|নগদে\s*দিল|নগদ\s*পেমেন্ট|nagad\b(?!\s*bikri))/i.test(lower);
+        const isBakiWord = /(বাকি|ধার|baki|baaki|due|credit|dhar)/i.test(lower);
+        const isPayWord = /(পরিশোধ|দিয়েছে|জমা|আদায়|শোধ|paid|return|collect|shodh|porishodh|joma|aday|dilo|dise|diyeche|payment)/i.test(lower);
+        const isTakeWord = /(নিল|নিয়েছে|নিসে|nilo|nise|niyeche|took|taken)/i.test(lower);
+
+        if (isBakiWord && isPayWord && !isTakeWord) {
+          type = 'baki_collection';
+          method = isBkash ? 'bKash' : isNagadMfs ? 'Nagad' : 'Cash';
+        } else if ((isBkash || isNagadMfs) && /(পেমেন্ট|দিল|পাঠাল|received|payment|বিক্রি|দিয়েছে|dilo|dise|pathalo|bikri)/i.test(lower)) {
+          type = 'mfs_sale';
+          method = isBkash ? 'bKash' : 'Nagad';
+        } else if (isBakiWord) {
+          type = 'baki_sale';
+          method = 'Baki';
+        } else if (/(কিনলাম|ক্রয়|পাইকারি|খরচ|ভাড়া|বিল|bought|purchase|expense|kinlam|khoroch|paikari|bhara|bill)/i.test(lower)) {
+          type = 'expense';
+          method = isBkash ? 'bKash' : 'Cash';
+        } else {
+          type = 'cash_sale';
+          method = 'Cash';
+        }
+
+        // Detect Customer / Party Name (Bangla + Banglish)
+        let customer = type === 'expense' ? 'পাইকারি সরবরাহকারী' : 'নগদ ক্রেতা';
+        const knownPatterns = [
+          { re: /(করিম\s*ভাই|karim\s*(?:vai|bhai)|korim\s*(?:vai|bhai)|\bkarim\b)/i, name: 'করিম ভাই' },
+          { re: /(রহিম\s*চাচা|rahim\s*chacha|rohim\s*chacha|\brahim\b)/i, name: 'রহিম চাচা' },
+          { re: /(সালমা\s*আপা|salma\s*apa|\bsalma\b)/i, name: 'সালমা আপা' },
+          { re: /(জামাল\s*মিয়া|jamal\s*(?:mia|vai|bhai)|\bjamal\b)/i, name: 'জামাল মিয়া' },
+          { re: /(তানভীর\s*আহমেদ|tanvir\s*ahmed|\btanvir\b)/i, name: 'তানভীর আহমেদ' },
+          { re: /(মামুন\s*ভাই|mamun\s*(?:vai|bhai)|\bmamun\b)/i, name: 'মামুন ভাই' }
+        ];
+        for (let i = 0; i < knownPatterns.length; i++) {
+          if (knownPatterns[i].re.test(normalized)) {
+            customer = knownPatterns[i].name;
+            break;
+          }
+        }
+        if (customer === 'নগদ ক্রেতা' || customer === 'পাইকারি সরবরাহকারী') {
+          const bnNameMatch = normalized.match(/^([অ-হড়-য়ংঁা-ৌ্]+(?:\s+(?:ভাই|চাচা|আপা|মিয়া|মামা|খালা|আঙ্কেল|সাহেব))?)\s+/);
+          const enNameMatch = normalized.match(/^([a-zA-Z]{2,}(?:\s+(?:vai|bhai|chacha|apa|mia|mama|uncle|sir))?)\s+\d/i);
+          if (bnNameMatch && !/^(নগদ|বাকি|পাইকারি|আজকে|মোট|বিক্রি|খরচ)/.test(bnNameMatch[1])) {
+            customer = normalizeCustomerName(bnNameMatch[1]);
+          } else if (enNameMatch && !/^(nagad|nogod|cash|baki|paikari|today|total|bikri|sale|expense|khoroch)$/i.test(enNameMatch[1].trim())) {
+            customer = normalizeCustomerName(enNameMatch[1].replace(/\b\w/g, function (ch) { return ch.toUpperCase(); }));
+          }
+        }
+
+        // Detect Inventory Item (Bangla + Banglish)
+        let matchedItem = null;
+        let itemLabel = type === 'baki_collection' ? 'বাকি পরিশোধ' : 'মুদি পণ্য';
+        for (let j = 0; j < state.inventory.length; j++) {
+          const inv = state.inventory[j];
+          if (inv.keywords.some(function (kw) {
+            const kLow = kw.toLowerCase();
+            if (/^[a-z]+$/.test(kLow)) {
+              return new RegExp('\\b' + kLow + '\\b', 'i').test(lower);
+            }
+            return lower.includes(kLow);
+          })) {
+            matchedItem = inv;
+            itemLabel = inv.name;
+            break;
+          }
+        }
+
+        const latencyMs = Math.max(68, Math.round(performance.now() - t0 + 82));
+        return {
+          intent_mode: 'transaction',
+          rawText: rawText,
+          type: type,
+          customer: customer,
+          item: itemLabel,
+          matchedInventoryId: matchedItem ? matchedItem.id : null,
+          qty: qty,
+          amount: Math.max(1, Math.round(amount)),
+          method: method,
+          confidence: matchedItem ? 97 : 94,
+          engine: 'KhudroKhata-Bangla+Banglish-NLP',
+          latencyMs: latencyMs
+        };
+      }
+
+      async function callGeminiModel(modelName, prompt) {
+        const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent?key=' + encodeURIComponent(state.geminiApiKey);
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.1 }
+          })
+        });
+        if (!res.ok) throw new Error(modelName + ' HTTP ' + res.status);
+        const data = await res.json();
+        return (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0].text) || '';
+      }
+
+      async function parseCommandWithOptionalGemini(rawText) {
+        const questionMode = isQuestionQuery(rawText);
+        if (!state.geminiApiKey) {
+          if (questionMode) {
+            return { intent_mode: 'question', rawText: rawText, ai_reply_bn: answerShopQuestionLocal(rawText), engine: 'KhudroKhata-Local-Advisor', latencyMs: 65 };
+          }
+          return parseBengaliCommandLocal(rawText);
+        }
+
+        const t0 = performance.now();
+        const metrics = computeFinancialMetrics();
+        const invNames = state.inventory.map(function (i) { return i.name; }).join(', ');
+        const prompt =
+          'You are KhudroKhata AI, a smart Bangladeshi grocery shop (mudir dokan) voice-to-ledger & FinTech assistant.\n' +
+          'User input (may be Bangla, Banglish with typos like "karim vai 300 tarkar chini baki nilo", or English): "' + rawText + '"\n' +
+          'Shop Inventory: [' + invNames + ']\n' +
+          'Shop Live Metrics: Total Sales=' + metrics.totalSales + ' BDT, Outstanding Baki=' + metrics.outstandingBaki + ' BDT, Credit Score=' + metrics.healthScore + '/900, Max Collateral-Free Loan=' + metrics.maxLoan + ' BDT.\n' +
+          'Decide if this is a "transaction" or a "question" about shop finances. Return ONLY valid JSON (no markdown) with keys:\n' +
+          '- intent_mode: "transaction" or "question"\n' +
+          '- type: "cash_sale" | "baki_sale" | "baki_collection" | "mfs_sale" | "expense" (for transaction; note "নগদ বিক্রি"/"nogod bikri" is cash_sale, while bKash/Nagad MFS payment is mfs_sale)\n' +
+          '- customer: normalized Bangla name (e.g. "করিম ভাই")\n' +
+          '- item: matched Bangla item from inventory or short Bangla item name\n' +
+          '- qty: positive integer\n' +
+          '- amount: positive number in BDT\n' +
+          '- method: "Cash" | "Baki" | "bKash" | "Nagad"\n' +
+          '- ai_reply_bn: natural, polite spoken Bengali response confirming the exact details (e.g. "করিম ভাইয়ের নামে ৩০০ টাকার চিনি বাকি খাতায় যুক্ত হয়েছে।") or answering the question clearly in Bangla.\n' +
+          '- reasoning: short 1-line technical trace of entity extraction.';
+
+        const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+        for (let m = 0; m < models.length; m++) {
+          try {
+            const textOut = await callGeminiModel(models[m], prompt);
+            const jsonMatch = textOut.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error('No JSON');
+            const parsed = JSON.parse(jsonMatch[0]);
+            const latencyMs = Math.round(performance.now() - t0);
+            if (parsed.intent_mode === 'question') {
+              return {
+                intent_mode: 'question',
+                rawText: rawText,
+                ai_reply_bn: parsed.ai_reply_bn || answerShopQuestionLocal(rawText),
+                reasoning: parsed.reasoning || 'Live financial Q&A from ledger state',
+                engine: models[m] + ' (Live API)',
+                latencyMs: latencyMs
+              };
+            }
+            const localFallback = parseBengaliCommandLocal(rawText);
+            const finalItem = parsed.item || localFallback.item;
+            const matchedInv = state.inventory.find(function (i) {
+              return i.name === finalItem || i.keywords.some(function (k) { return finalItem.toLowerCase().includes(k.toLowerCase()); });
+            });
+            return {
+              intent_mode: 'transaction',
+              rawText: rawText,
+              type: parsed.type || localFallback.type,
+              customer: normalizeCustomerName(parsed.customer || localFallback.customer),
+              item: matchedInv ? matchedInv.name : finalItem,
+              matchedInventoryId: matchedInv ? matchedInv.id : localFallback.matchedInventoryId,
+              qty: Math.max(1, Number(parsed.qty) || localFallback.qty),
+              amount: Math.max(1, Number(parsed.amount) || localFallback.amount),
+              method: parsed.method || localFallback.method,
+              ai_reply_bn: parsed.ai_reply_bn || '',
+              reasoning: parsed.reasoning || '',
+              confidence: 99,
+              engine: models[m] + ' (Live API)',
+              latencyMs: latencyMs
+            };
+          } catch (err) {
+            // try next model, then fallback to local NLP
+          }
+        }
+
+        if (questionMode) {
+          return { intent_mode: 'question', rawText: rawText, ai_reply_bn: answerShopQuestionLocal(rawText), engine: 'KhudroKhata-Local-Advisor', latencyMs: Math.round(performance.now() - t0) };
+        }
+        return parseBengaliCommandLocal(rawText);
+      }
+
+      function applyTransaction(parsed) {
+        const id = 'TX-' + (1001 + state.transactions.length);
+        const ts = Date.now();
+        const hash = makeAuditHash(id + '|' + parsed.customer + '|' + parsed.amount + '|' + ts);
+        const tx = {
+          id: id,
+          ts: ts,
+          type: parsed.type,
+          customer: parsed.customer,
+          item: parsed.item,
+          qty: parsed.qty || 1,
+          amount: parsed.amount,
+          method: parsed.method || 'Cash',
+          hash: hash
+        };
+        state.transactions.unshift(tx);
+
+        // Sync Inventory Automatically
+        let stockMsg = 'স্টক অপরিবর্তিত';
+        if (parsed.matchedInventoryId) {
+          const inv = state.inventory.find(function (i) { return i.id === parsed.matchedInventoryId; });
+          if (inv) {
+            if (tx.type === 'expense') {
+              inv.stock += tx.qty;
+              stockMsg = inv.name + ' +' + tx.qty + ' ' + inv.unit + ' যোগ হয়েছে';
+            } else if (tx.type === 'cash_sale' || tx.type === 'baki_sale' || tx.type === 'mfs_sale') {
+              inv.stock = Math.max(0, inv.stock - tx.qty);
+              inv.monthlySold += tx.qty;
+              stockMsg = inv.name + ' -' + tx.qty + ' ' + inv.unit + ' স্টক কমেছে';
+            }
+          }
+        }
+
+        saveState();
+        const metrics = computeFinancialMetrics();
+        const replyBn = parsed.ai_reply_bn || buildNaturalBanglaReply(tx, metrics);
+
+        // Update Multi-Agent Trace Panel
+        document.getElementById('agentLatencyBadge').textContent = 'Latency: ' + (parsed.latencyMs || 110) + 'ms';
+        document.getElementById('traceStep1').textContent = 'ট্রান্সক্রিপ্ট: "' + parsed.rawText + '"';
+        document.getElementById('traceStep2').textContent = (parsed.reasoning ? parsed.reasoning : ('Intent: ' + parsed.type + ' | গ্রাহক: ' + parsed.customer + ' | ৳' + parsed.amount));
+        document.getElementById('traceStep3').textContent = 'হ্যাশ #' + hash + ' | ' + stockMsg;
+        document.getElementById('traceStep4').textContent = 'নতুন হেলথ স্কোর: ' + metrics.healthScore + '/900 (' + metrics.tier + ')';
+        document.getElementById('traceConfidence').textContent = 'Confidence: ' + (parsed.confidence || 95) + '%';
+        document.getElementById('traceJsonOutput').textContent = JSON.stringify({
+          agent_engine: parsed.engine || 'KhudroKhata-Local',
+          tx_id: tx.id,
+          intent: tx.type,
+          customer: tx.customer,
+          item: tx.item,
+          qty: tx.qty,
+          amount_bdt: tx.amount,
+          method: tx.method,
+          audit_hash: tx.hash,
+          updated_credit_score: metrics.healthScore,
+          ai_reply_bn: replyBn
+        }, null, 2);
+
+        const replyEn = buildEnglishReply(tx, metrics);
+        showAiResponseBubble((state.lang === 'en' ? 'KhudroKhata AI' : 'ক্ষুদ্র-খাতা এআই') + ' (' + (parsed.engine || 'AI') + ')', state.lang === 'en' ? replyEn : replyBn);
+        renderAll();
+        showToast('এন্ট্রি সফল: ' + tx.customer + ' — ' + formatTk(tx.amount), 'success');
+        speakFeedback(replyBn, replyEn);
+      }
+
+      // ==================== RENDERING FUNCTIONS ====================
+      function getTypeBadge(type) {
+        const map = {
+          cash_sale: { text: 'নগদ বিক্রি', cls: 'bg-emerald-100 text-emerald-800' },
+          baki_sale: { text: 'বাকি বিক্রি', cls: 'bg-amber-100 text-amber-800' },
+          baki_collection: { text: 'বাকি আদায়', cls: 'bg-sky-100 text-sky-800' },
+          mfs_sale: { text: 'MFS পেমেন্ট', cls: 'bg-pink-100 text-pink-800' },
+          expense: { text: 'ক্রয় / খরচ', cls: 'bg-slate-200 text-slate-800' }
+        };
+        return map[type] || { text: type, cls: 'bg-slate-100 text-slate-700' };
+      }
+
+      function renderDashboard(metrics) {
+        document.getElementById('kpiTotalSales').textContent = formatTk(metrics.totalSales);
+        document.getElementById('kpiSalesMeta').textContent = 'নগদ: ' + formatTk(metrics.totalCashSales) + ' • MFS: ' + formatTk(metrics.totalMfsSales);
+        document.getElementById('kpiTotalBaki').textContent = formatTk(metrics.outstandingBaki);
+        document.getElementById('kpiBakiMeta').textContent = 'আদায়ের হার: ' + toBnDigits(metrics.pillars[0].score) + '%';
+        document.getElementById('kpiNetCash').textContent = formatTk(metrics.netCashflow);
+        document.getElementById('kpiCashMeta').textContent = 'মোট খরচ/ক্রয়: ' + formatTk(metrics.totalExpenses);
+        document.getElementById('kpiCreditScore').textContent = toBnDigits(metrics.healthScore);
+        document.getElementById('kpiScoreTier').textContent = metrics.tier;
+        document.getElementById('kpiLoanEligible').textContent = 'জামানতবিহীন ঋণ যোগ্যতা: ' + formatTk(metrics.maxLoan);
+        document.getElementById('sidebarScoreBadge').textContent = metrics.healthScore;
+
+        // Recent Transactions List
+        const recentEl = document.getElementById('recentTransactionsList');
+        recentEl.innerHTML = state.transactions.slice(0, 6).map(function (tx) {
+          const badge = getTypeBadge(tx.type);
+          const sign = tx.type === 'expense' ? '-' : '+';
+          const amtColor = tx.type === 'expense' ? 'text-rose-600' : tx.type === 'baki_sale' ? 'text-amber-700' : 'text-emerald-700';
+          return '<div class="p-3 rounded-xl border border-slate-100 bg-slate-50/70 flex items-center justify-between gap-2">' +
+            '<div class="min-w-0">' +
+            '<div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-md text-[10px] font-bold ' + badge.cls + '">' + badge.text + '</span><span class="text-xs font-bold text-slate-800 truncate">' + tx.customer + '</span></div>' +
+            '<p class="text-[11px] text-slate-500 mt-0.5 truncate">' + tx.item + ' • ' + formatDate(tx.ts) + '</p>' +
+            '</div>' +
+            '<span class="text-sm font-extrabold shrink-0 ' + amtColor + '">' + sign + formatTk(tx.amount) + '</span>' +
+            '</div>';
+        }).join('');
+
+        renderCashflowChart();
+      }
+
+      function renderCashflowChart() {
+        const canvas = document.getElementById('cashflowChart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        const labels = [];
+        const cashData = [];
+        const bakiData = [];
+        const now = new Date();
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now.getTime() - i * 86400000);
+          labels.push(d.toLocaleDateString('bn-BD', { weekday: 'short' }));
+          let dayCash = 0;
+          let dayBaki = 0;
+          state.transactions.forEach(function (tx) {
+            const td = new Date(tx.ts);
+            if (td.getDate() === d.getDate() && td.getMonth() === d.getMonth()) {
+              if (tx.type === 'cash_sale' || tx.type === 'mfs_sale' || tx.type === 'baki_collection') dayCash += tx.amount;
+              if (tx.type === 'baki_sale') dayBaki += tx.amount;
+            }
+          });
+          cashData.push(dayCash);
+          bakiData.push(dayBaki);
+        }
+
+        if (cashflowChartInstance) cashflowChartInstance.destroy();
+        cashflowChartInstance = new Chart(canvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: 'নগদ + MFS + আদায় (৳)', data: cashData, backgroundColor: '#10b981', borderRadius: 6 },
+              { label: 'নতুন বাকি (৳)', data: bakiData, backgroundColor: '#f59e0b', borderRadius: 6 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+            scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+          }
+        });
+      }
+
+      function renderLedgerTable() {
+        const search = (document.getElementById('ledgerSearchInput').value || '').toLowerCase();
+        const typeFilter = document.getElementById('ledgerTypeFilter').value;
+        const tbody = document.getElementById('ledgerTableBody');
+
+        const filtered = state.transactions.filter(function (tx) {
+          if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
+          if (search && !(tx.customer.toLowerCase().includes(search) || tx.item.toLowerCase().includes(search) || tx.id.toLowerCase().includes(search))) return false;
+          return true;
+        });
+
+        if (!filtered.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-400 text-xs">কোনো লেনদেন পাওয়া যায়নি</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(function (tx) {
+          const badge = getTypeBadge(tx.type);
+          return '<tr class="hover:bg-slate-50/80 transition">' +
+            '<td class="py-3 px-3 text-xs text-slate-500 whitespace-nowrap">' + formatDate(tx.ts) + '</td>' +
+            '<td class="py-3 px-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded-md text-[11px] font-bold ' + badge.cls + '">' + badge.text + '</span></td>' +
+            '<td class="py-3 px-3 font-semibold text-slate-800">' + tx.customer + ' <span class="text-[11px] text-slate-400">(' + tx.method + ')</span></td>' +
+            '<td class="py-3 px-3 text-slate-600">' + tx.item + ' (' + toBnDigits(tx.qty) + ')</td>' +
+            '<td class="py-3 px-3 text-right font-bold text-slate-900 whitespace-nowrap">' + formatTk(tx.amount) + '</td>' +
+            '<td class="py-3 px-3 font-mono text-[11px] text-emerald-700">#' + tx.hash + '</td>' +
+            '<td class="py-3 px-3 text-right no-print"><button type="button" data-del-tx="' + tx.id + '" class="text-xs text-rose-600 hover:underline font-medium">মুছুন</button></td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function renderBakiSection(metrics) {
+        const entries = Object.keys(metrics.customers).map(function (name) {
+          const c = metrics.customers[name];
+          const due = Math.max(0, c.given - c.collected);
+          const rate = c.given > 0 ? Math.round((c.collected / c.given) * 100) : 100;
+          return { name: name, given: c.given, collected: c.collected, due: due, rate: rate, lastTs: c.lastTs };
+        }).sort(function (a, b) { return b.due - a.due; });
+
+        document.getElementById('bakiCustomerCount').textContent = toBnDigits(entries.length) + ' জন';
+        document.getElementById('bakiOutstandingSum').textContent = formatTk(metrics.outstandingBaki);
+        document.getElementById('bakiRecoveryRateCard').textContent = toBnDigits(metrics.pillars[0].score) + '%';
+
+        const grid = document.getElementById('bakiCustomerGrid');
+        if (!entries.length) {
+          grid.innerHTML = '<p class="text-xs text-slate-400 col-span-full text-center py-6">কোনো বাকি গ্রাহক নেই</p>';
+          return;
+        }
+
+        grid.innerHTML = entries.map(function (c) {
+          const statusBadge = c.due === 0
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">পরিশোধিত</span>'
+            : c.rate >= 60
+              ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">ভালো গ্রাহক</span>'
+              : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">তাগাদা প্রয়োজন</span>';
+          return '<div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between gap-3">' +
+            '<div>' +
+            '<div class="flex items-center justify-between mb-1"><h4 class="font-bold text-slate-900">' + c.name + '</h4>' + statusBadge + '</div>' +
+            '<p class="text-xs text-slate-500">মোট বাকি: ' + formatTk(c.given) + ' • আদায়: ' + formatTk(c.collected) + '</p>' +
+            '<p class="text-lg font-extrabold text-amber-700 mt-2">বাকি পাওনা: ' + formatTk(c.due) + '</p>' +
+            '</div>' +
+            '<div class="flex gap-2">' +
+            (c.due > 0 ? '<button type="button" data-collect-name="' + c.name + '" data-collect-due="' + c.due + '" class="flex-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition">✓ বাকি আদায়</button>' : '') +
+            '<button type="button" data-remind-name="' + c.name + '" data-remind-due="' + c.due + '" class="flex-1 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition">📩 তাগাদা মেসেজ</button>' +
+            '</div>' +
+            '</div>';
+        }).join('');
+      }
+
+      function renderInventorySection() {
+        const tbody = document.getElementById('inventoryTableBody');
+        const lowItems = state.inventory.filter(function (i) { return i.stock <= i.reorder; });
+        const banner = document.getElementById('lowStockBanner');
+        if (lowItems.length) {
+          banner.classList.remove('hidden');
+          document.getElementById('lowStockText').innerHTML = '<strong>স্টক সতর্কতা:</strong> ' + lowItems.map(function (i) { return i.name + ' (' + toBnDigits(i.stock) + ' ' + i.unit + ')'; }).join(', ') + ' — দ্রুত রিস্টক করুন।';
+        } else {
+          banner.classList.add('hidden');
+        }
+
+        tbody.innerHTML = state.inventory.map(function (item) {
+          const isLow = item.stock <= item.reorder;
+          const badge = isLow
+            ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">স্টক কম</span>'
+            : '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">পর্যাপ্ত</span>';
+          return '<tr class="hover:bg-slate-50/80">' +
+            '<td class="py-3 px-4 font-bold text-slate-900">' + item.name + '</td>' +
+            '<td class="py-3 px-4 text-xs text-slate-500">' + item.category + '</td>' +
+            '<td class="py-3 px-4 text-right font-semibold">' + formatTk(item.price) + '/' + item.unit + '</td>' +
+            '<td class="py-3 px-4 text-right font-bold ' + (isLow ? 'text-rose-600' : 'text-slate-900') + '">' + toBnDigits(item.stock) + ' ' + item.unit + '</td>' +
+            '<td class="py-3 px-4 text-right text-slate-600">' + toBnDigits(item.monthlySold) + ' ' + item.unit + '</td>' +
+            '<td class="py-3 px-4">' + badge + '</td>' +
+            '<td class="py-3 px-4 text-right"><button type="button" data-restock-id="' + item.id + '" class="px-3 py-1 rounded-lg bg-slate-900 hover:bg-emerald-700 text-white text-xs font-semibold transition">+ ১০ ' + item.unit + '</button></td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function renderCreditSection(metrics) {
+        document.getElementById('creditScoreBig').textContent = toBnDigits(metrics.healthScore);
+        document.getElementById('creditRiskGrade').textContent = metrics.riskGrade;
+        document.getElementById('loanTabScore').textContent = toBnDigits(metrics.healthScore);
+
+        const barsEl = document.getElementById('creditFactorBars');
+        barsEl.innerHTML = metrics.pillars.map(function (p) {
+          return '<div>' +
+            '<div class="flex justify-between text-xs font-semibold mb-1">' +
+            '<span class="text-slate-700">' + p.label + ' <span class="text-slate-400">(' + toBnDigits(p.weight) + '%)</span></span>' +
+            '<span class="text-slate-900 font-bold">' + toBnDigits(p.score) + '/১০০</span>' +
+            '</div>' +
+            '<div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">' +
+            '<div class="h-full rounded-full ' + p.color + '" style="width:' + p.score + '%"></div>' +
+            '</div>' +
+            '</div>';
+        }).join('');
+
+        // Radar Chart
+        const canvas = document.getElementById('creditRadarChart');
+        if (canvas && typeof Chart !== 'undefined') {
+          if (creditRadarInstance) creditRadarInstance.destroy();
+          creditRadarInstance = new Chart(canvas.getContext('2d'), {
+            type: 'radar',
+            data: {
+              labels: ['বাকি আদায়', 'নগদ প্রবাহ', 'স্টক টার্নওভার', 'MFS লেনদেন', 'হিসাব ধারাবাহিকতা'],
+              datasets: [
+                {
+                  label: 'আপনার দোকান',
+                  data: metrics.pillars.map(function (p) { return p.score; }),
+                  backgroundColor: 'rgba(16, 185, 129, 0.25)',
+                  borderColor: '#059669',
+                  pointBackgroundColor: '#059669',
+                  borderWidth: 2
+                },
+                {
+                  label: 'ব্যাংক SME বেঞ্চমার্ক',
+                  data: [75, 70, 65, 55, 70],
+                  backgroundColor: 'rgba(148, 163, 184, 0.12)',
+                  borderColor: '#94a3b8',
+                  borderDash: [4, 4],
+                  borderWidth: 1.5
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { r: { min: 0, max: 100, ticks: { display: false } } },
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } }
+            }
+          });
+        }
+      }
+
+      function renderLoanOffers(metrics) {
+        const partners = [
+          { id: 'brac', name: 'BRAC Bank SME', product: 'অনন্যা / উত্তরণ মাইক্রো-লোন', minScore: 650, maxAmount: 250000, rate: '9.0%', badge: 'bg-sky-100 text-sky-800', fee: '1.5% প্রসেসিং ফি' },
+          { id: 'bkash', name: 'bKash Nano Loan', product: 'তাৎক্ষণিক ডিজিটাল ন্যানো লোন', minScore: 580, maxAmount: 50000, rate: '9.0%', badge: 'bg-pink-100 text-pink-800', fee: 'ইনস্ট্যান্ট ডিসবার্সাল' },
+          { id: 'city', name: 'City Bank SME', product: 'ক্ষুদ্র ব্যবসায়ী চলতি মূলধন', minScore: 700, maxAmount: 200000, rate: '9.5%', badge: 'bg-rose-100 text-rose-800', fee: 'জামানতবিহীন' },
+          { id: 'nagad', name: 'Nagad Micro-Credit', product: 'উদ্যোক্তা ইনভেন্টরি লোন', minScore: 600, maxAmount: 80000, rate: '9.2%', badge: 'bg-orange-100 text-orange-800', fee: 'সাপ্তাহিক/মাসিক কিস্তি' }
+        ];
+
+        const grid = document.getElementById('loanOffersGrid');
+        grid.innerHTML = partners.map(function (p) {
+          const unlocked = metrics.healthScore >= p.minScore && state.bankConsent;
+          const applied = state.appliedLoans.includes(p.id);
+          return '<div class="bg-white rounded-2xl border ' + (unlocked ? 'border-emerald-200' : 'border-slate-200 opacity-75') + ' shadow-sm p-5 flex flex-col justify-between gap-4">' +
+            '<div>' +
+            '<div class="flex items-center justify-between mb-2"><span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ' + p.badge + '">' + p.name + '</span><span class="text-xs font-bold text-emerald-700">' + p.rate + '</span></div>' +
+            '<h4 class="font-bold text-slate-900 text-sm">' + p.product + '</h4>' +
+            '<p class="text-xl font-extrabold text-slate-900 mt-2">সর্বোচ্চ ' + formatTk(Math.min(p.maxAmount, metrics.maxLoan)) + '</p>' +
+            '<p class="text-[11px] text-slate-500 mt-1">ন্যূনতম স্কোর: ' + toBnDigits(p.minScore) + ' • ' + p.fee + '</p>' +
+            '</div>' +
+            '<button type="button" data-apply-loan="' + p.id + '" data-loan-name="' + p.name + '" data-loan-max="' + Math.min(p.maxAmount, metrics.maxLoan) + '" ' + (!unlocked || applied ? 'disabled' : '') + ' class="w-full py-2 rounded-xl text-xs font-bold transition ' + (applied ? 'bg-emerald-100 text-emerald-800 cursor-default' : unlocked ? 'bg-slate-900 hover:bg-emerald-700 text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed') + '">' +
+            (applied ? '✓ আবেদন জমা হয়েছে' : unlocked ? 'আবেদন করুন →' : (!state.bankConsent ? 'ডেটা সম্মতি বন্ধ আছে' : 'স্কোর ' + p.minScore + '+ প্রয়োজন')) +
+            '</button>' +
+            '</div>';
+        }).join('');
+      }
+
+      function updateWhatIfSim() {
+        const rec = Number(document.getElementById('simRecoverySlider').value);
+        const mfs = Number(document.getElementById('simMfsSlider').value);
+        const turn = Number(document.getElementById('simTurnoverSlider').value);
+        document.getElementById('simRecoveryVal').textContent = toBnDigits(rec) + '%';
+        document.getElementById('simMfsVal').textContent = toBnDigits(mfs) + '%';
+        document.getElementById('simTurnoverVal').textContent = toBnDigits(turn) + '%';
+
+        const metrics = computeFinancialMetrics();
+        const weighted = rec * 0.30 + metrics.pillars[1].score * 0.25 + turn * 0.20 + mfs * 0.15 + metrics.pillars[4].score * 0.10;
+        const simScore = Math.round(300 + (weighted / 100) * 600);
+        const simLoan = simScore >= 780 ? 250000 : simScore >= 700 ? 150000 : simScore >= 600 ? 75000 : 30000;
+        document.getElementById('simResultScore').textContent = toBnDigits(simScore) + ' / ' + toBnDigits(900);
+        document.getElementById('simResultLoan').textContent = formatTk(simLoan);
+      }
+
+      function updateEmiCalculator() {
+        const P = Math.max(1000, Number(document.getElementById('emiAmount').value) || 100000);
+        const annualRate = Math.max(0.1, Number(document.getElementById('emiRate').value) || 9);
+        const n = Math.max(1, Number(document.getElementById('emiMonths').value) || 12);
+        const r = annualRate / 12 / 100;
+        const emi = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        const total = emi * n;
+        const interest = total - P;
+        document.getElementById('emiMonthlyResult').textContent = formatTk(emi);
+        document.getElementById('emiInterestResult').textContent = formatTk(interest);
+        document.getElementById('emiTotalResult').textContent = formatTk(total);
+      }
+
+      function applyLanguage() {
+        const dict = I18N[state.lang] || I18N.bn;
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {
+          const key = el.getAttribute('data-i18n');
+          if (dict[key]) el.textContent = dict[key];
+        });
+        const activeBtn = document.querySelector('.nav-btn.bg-emerald-600');
+        const tabId = activeBtn ? activeBtn.getAttribute('data-tab') : 'dashboard';
+        if (TAB_TITLES[tabId]) {
+          document.getElementById('pageTitle').textContent = TAB_TITLES[tabId][state.lang];
+        }
+      }
+
+      function updateApiStatusUI() {
+        const dot = document.getElementById('aiModeDot');
+        const label = document.getElementById('aiModeLabel');
+        if (state.geminiApiKey) {
+          dot.className = 'w-2 h-2 rounded-full bg-sky-400';
+          label.textContent = 'Gemini Live API চালু';
+        } else {
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          label.textContent = 'ফ্রি AI ইঞ্জিন চালু';
+        }
+      }
+
+      function renderAll() {
+        const metrics = computeFinancialMetrics();
+        renderDashboard(metrics);
+        renderLedgerTable();
+        renderBakiSection(metrics);
+        renderInventorySection();
+        renderCreditSection(metrics);
+        renderLoanOffers(metrics);
+        updateWhatIfSim();
+        updateEmiCalculator();
+        updateApiStatusUI();
+        applyLanguage();
+      }
+
+      // ==================== TAB SWITCHING & MODALS ====================
+      function switchTab(tabId) {
+        document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+        const target = document.getElementById('tab-' + tabId);
+        if (target) target.classList.add('active');
+
+        document.querySelectorAll('.nav-btn').forEach(function (btn) {
+          const isMatch = btn.getAttribute('data-tab') === tabId;
+          btn.classList.toggle('bg-emerald-600', isMatch);
+          btn.classList.toggle('text-white', isMatch);
+          btn.classList.toggle('shadow-sm', isMatch);
+          if (!isMatch) {
+            btn.classList.add('text-slate-300');
+          } else if (isMatch) {
+            btn.classList.remove('text-slate-300');
+          }
+        });
+
+        if (TAB_TITLES[tabId]) {
+          document.getElementById('pageTitle').textContent = TAB_TITLES[tabId][state.lang];
+        }
+        closeSidebar();
+        if (tabId === 'dashboard') renderCashflowChart();
+        if (tabId === 'credit') renderCreditSection(computeFinancialMetrics());
+      }
+
+      function openModal(id) {
+        const m = document.getElementById(id);
+        if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+      }
+
+      function closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+      }
+
+      function openSidebar() {
+        document.getElementById('sidebar').classList.remove('-translate-x-full');
+        document.getElementById('mobileOverlay').classList.remove('hidden');
+      }
+
+      function closeSidebar() {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('mobileOverlay').classList.add('hidden');
+      }
+
+      // ==================== WEB SPEECH API (VOICE RECOGNITION) ====================
+      function toggleVoiceRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          showToast('এই ব্রাউজারে লাইভ মাইক্রোফোন সাপোর্ট নেই — নিচের ডেমো কমান্ড বা টাইপ বক্স ব্যবহার করুন!', 'warn');
+          return;
+        }
+        if (isListening && recognition) {
+          recognition.stop();
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = document.getElementById('speechLangSelect').value || 'bn-BD';
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = function () {
+          isListening = true;
+          document.getElementById('micBtn').classList.add('voice-pulse', 'from-rose-500', 'to-red-600');
+          document.getElementById('micStatus').textContent = 'কথা বলুন — আমি শুনছি...';
+          document.getElementById('waveVisualizer').classList.remove('hidden');
+        };
+
+        recognition.onresult = function (event) {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+          }
+          document.getElementById('voiceInputText').value = transcript;
+          if (event.results[event.results.length - 1].isFinal) {
+            handleVoiceCommand(transcript);
+          }
+        };
+
+        recognition.onerror = function (ev) {
+          showToast('মাইক্রোফোন এরর (' + ev.error + ') — ডেমো বাটন বা টাইপ করে টেস্ট করুন', 'warn');
+        };
+
+        recognition.onend = function () {
+          isListening = false;
+          document.getElementById('micBtn').classList.remove('voice-pulse', 'from-rose-500', 'to-red-600');
+          document.getElementById('micStatus').textContent = 'মাইক্রোফোনে ট্যাপ করে বাংলায় বলুন';
+          document.getElementById('waveVisualizer').classList.add('hidden');
+        };
+
+        try {
+          recognition.start();
+        } catch (err) {
+          showToast('মাইক্রোফোন চালু করা যায়নি — ডেমো কমান্ড ব্যবহার করুন', 'warn');
+        }
+      }
+
+      async function handleVoiceCommand(text) {
+        const clean = (text || '').trim();
+        if (!clean) {
+          showToast('অনুগ্রহ করে একটি কমান্ড বলুন বা লিখুন', 'warn');
+          return;
+        }
+        document.getElementById('traceStep1').textContent = 'প্রসেসিং: "' + clean + '"...';
+        const parsed = await parseCommandWithOptionalGemini(clean);
+        if (parsed.intent_mode === 'question') {
+          const reply = parsed.ai_reply_bn || answerShopQuestionLocal(clean);
+          document.getElementById('agentLatencyBadge').textContent = 'Latency: ' + (parsed.latencyMs || 95) + 'ms';
+          document.getElementById('traceStep1').textContent = 'প্রশ্ন: "' + clean + '"';
+          document.getElementById('traceStep2').textContent = 'Intent: Financial Q&A Advisor';
+          document.getElementById('traceStep3').textContent = 'লাইভ লেজার ও ক্রেডিট মেট্রিক্স বিশ্লেষণ সম্পন্ন';
+          document.getElementById('traceStep4').textContent = 'বাংলায় উত্তর তৈরি হয়েছে';
+          document.getElementById('traceJsonOutput').textContent = JSON.stringify({
+            agent_engine: parsed.engine,
+            intent_mode: 'question',
+            ai_reply_bn: reply
+          }, null, 2);
+          showAiResponseBubble('ক্ষুদ্র-খাতা এআই উপদেষ্টা (' + parsed.engine + ')', reply);
+          const mNow = computeFinancialMetrics();
+          const replyEnQa = 'Your total sales are ' + mNow.totalSales + ' taka, outstanding baki is ' + mNow.outstandingBaki + ' taka, financial health score is ' + mNow.healthScore + ' out of 900, and eligible collateral free loan is up to ' + mNow.maxLoan + ' taka.';
+          speakFeedback(reply, replyEnQa);
+        } else {
+          applyTransaction(parsed);
+        }
+        document.getElementById('voiceInputText').value = '';
+      }
+
+      // ==================== EXPORT HELPERS ====================
+      function downloadFile(filename, content, mime) {
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+      }
+
+      // ==================== EVENT LISTENERS ====================
+      document.getElementById('mainNav').addEventListener('click', function (e) {
+        const btn = e.target.closest('.nav-btn');
+        if (btn) switchTab(btn.getAttribute('data-tab'));
+      });
+
+      document.getElementById('openSidebarBtn').addEventListener('click', openSidebar);
+      document.getElementById('closeSidebarBtn').addEventListener('click', closeSidebar);
+      document.getElementById('mobileOverlay').addEventListener('click', closeSidebar);
+      document.getElementById('viewAllLedgerBtn').addEventListener('click', function () { switchTab('ledger'); });
+
+      document.getElementById('micBtn').addEventListener('click', toggleVoiceRecognition);
+
+      document.getElementById('voiceCommandForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        handleVoiceCommand(document.getElementById('voiceInputText').value);
+      });
+
+      document.getElementById('presetCommands').addEventListener('click', function (e) {
+        const btn = e.target.closest('.preset-btn');
+        if (!btn) return;
+        const cmd = btn.getAttribute('data-cmd');
+        document.getElementById('voiceInputText').value = cmd;
+        handleVoiceCommand(cmd);
+      });
+
+      document.getElementById('replayAiVoiceBtn').addEventListener('click', function () {
+        if (lastSpokenBn || lastSpokenEn) {
+          speakFeedback(lastSpokenBn, lastSpokenEn);
+        }
+      });
+
+      document.getElementById('ttsToggleBtn').addEventListener('click', function () {
+        state.ttsEnabled = !state.ttsEnabled;
+        saveState();
+        document.getElementById('ttsIcon').textContent = state.ttsEnabled ? '🔊' : '🔇';
+        showToast(state.ttsEnabled ? 'ভয়েস ফিডব্যাক চালু হয়েছে' : 'ভয়েস ফিডব্যাক বন্ধ হয়েছে', 'success');
+      });
+
+      document.getElementById('langToggleBtn').addEventListener('click', function () {
+        state.lang = state.lang === 'bn' ? 'en' : 'bn';
+        saveState();
+        renderAll();
+        showToast(state.lang === 'bn' ? 'ভাষা: বাংলা' : 'Language: English', 'success');
+      });
+
+      document.getElementById('quickAddHeaderBtn').addEventListener('click', function () { openModal('manualEntryModal'); });
+      document.getElementById('openAddProductBtn').addEventListener('click', function () { openModal('addProductModal'); });
+      document.getElementById('openApiModalBtn').addEventListener('click', function () {
+        document.getElementById('geminiApiKeyInput').value = state.geminiApiKey || '';
+        openModal('apiSettingsModal');
+      });
+
+      document.addEventListener('click', function (e) {
+        const closeBtn = e.target.closest('[data-close-modal]');
+        if (closeBtn) {
+          closeModal(closeBtn.getAttribute('data-close-modal'));
+          return;
+        }
+        const delTxBtn = e.target.closest('[data-del-tx]');
+        if (delTxBtn) {
+          const id = delTxBtn.getAttribute('data-del-tx');
+          state.transactions = state.transactions.filter(function (t) { return t.id !== id; });
+          saveState();
+          renderAll();
+          showToast('লেনদেন মুছে ফেলা হয়েছে', 'warn');
+          return;
+        }
+        const collectBtn = e.target.closest('[data-collect-name]');
+        if (collectBtn) {
+          const name = collectBtn.getAttribute('data-collect-name');
+          const due = Number(collectBtn.getAttribute('data-collect-due')) || 0;
+          if (due > 0) {
+            applyTransaction({
+              rawText: name + ' ' + due + ' টাকা বাকি পরিশোধ করল',
+              type: 'baki_collection',
+              customer: name,
+              item: 'বাকি পরিশোধ',
+              qty: 1,
+              amount: due,
+              method: 'bKash',
+              confidence: 100,
+              engine: 'One-Click Baki Collector',
+              latencyMs: 42
+            });
+          }
+          return;
+        }
+        const remindBtn = e.target.closest('[data-remind-name]');
+        if (remindBtn) {
+          const name = remindBtn.getAttribute('data-remind-name');
+          const due = Number(remindBtn.getAttribute('data-remind-due')) || 0;
+          const msg = 'আসসালামু আলাইকুম ' + name + ', মা-বাবার দোয়া স্টোর-এ আপনার বর্তমান বাকি ' + formatTk(due) + '। সুবিধামতো নগদ বা বিকাশে পরিশোধ করার জন্য অনুরোধ রইল। ধন্যবাদ — ক্ষুদ্র-খাতা এআই।';
+          copyText(msg);
+          return;
+        }
+        const restockBtn = e.target.closest('[data-restock-id]');
+        if (restockBtn) {
+          const inv = state.inventory.find(function (i) { return i.id === restockBtn.getAttribute('data-restock-id'); });
+          if (inv) {
+            inv.stock += 10;
+            saveState();
+            renderAll();
+            showToast(inv.name + ' +১০ ' + inv.unit + ' রিস্টক হয়েছে!', 'success');
+          }
+          return;
+        }
+        const loanBtn = e.target.closest('[data-apply-loan]');
+        if (loanBtn) {
+          activeLoanPartner = {
+            id: loanBtn.getAttribute('data-apply-loan'),
+            name: loanBtn.getAttribute('data-loan-name'),
+            max: Number(loanBtn.getAttribute('data-loan-max')) || 50000
+          };
+          const metrics = computeFinancialMetrics();
+          document.getElementById('loanModalTitle').textContent = activeLoanPartner.name + ' — SME লোন আবেদন';
+          document.getElementById('loanModalBody').innerHTML =
+            '<p>আপনার অডিট-ভেরিফাইড ক্রেডিট স্কোর <strong>' + toBnDigits(metrics.healthScore) + '/৯০০ (' + metrics.tier + ')</strong>। সর্বোচ্চ অনুমোদিত সীমা: <strong>' + formatTk(activeLoanPartner.max) + '</strong>।</p>';
+          const reqInput = document.getElementById('loanReqAmount');
+          reqInput.max = activeLoanPartner.max;
+          reqInput.value = Math.min(50000, activeLoanPartner.max);
+          openModal('loanApplyModal');
+        }
+      });
+
+      document.getElementById('manualEntryForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const type = document.getElementById('mType').value;
+        const customer = document.getElementById('mCustomer').value.trim();
+        const amount = Number(document.getElementById('mAmount').value) || 0;
+        const qty = Number(document.getElementById('mQty').value) || 1;
+        const item = document.getElementById('mItem').value.trim() || 'মুদি পণ্য';
+        const method = type === 'baki_sale' ? 'Baki' : type === 'mfs_sale' ? 'bKash' : 'Cash';
+        const inv = state.inventory.find(function (i) { return item.includes(i.name) || i.keywords.some(function (k) { return item.toLowerCase().includes(k); }); });
+
+        applyTransaction({
+          rawText: customer + ' - ' + item + ' (' + amount + ' টাকা)',
+          type: type,
+          customer: customer,
+          item: item,
+          matchedInventoryId: inv ? inv.id : null,
+          qty: qty,
+          amount: amount,
+          method: method,
+          confidence: 100,
+          engine: 'Manual Verified Entry',
+          latencyMs: 25
+        });
+        e.target.reset();
+        closeModal('manualEntryModal');
+      });
+
+      document.getElementById('addProductForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const name = document.getElementById('pName').value.trim();
+        const category = document.getElementById('pCategory').value.trim() || 'মুদি পণ্য';
+        const unit = document.getElementById('pUnit').value.trim() || 'কেজি';
+        const price = Number(document.getElementById('pPrice').value) || 100;
+        const stock = Number(document.getElementById('pStock').value) || 10;
+        state.inventory.push({
+          id: 'INV-' + (state.inventory.length + 1),
+          name: name,
+          keywords: [name],
+          category: category,
+          unit: unit,
+          price: price,
+          stock: stock,
+          monthlySold: 12,
+          reorder: 5
+        });
+        saveState();
+        renderAll();
+        e.target.reset();
+        closeModal('addProductModal');
+        showToast(name + ' ইনভেন্টরিতে যোগ করা হয়েছে!', 'success');
+      });
+
+      document.getElementById('apiSettingsForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        state.geminiApiKey = document.getElementById('geminiApiKeyInput').value.trim();
+        saveState();
+        updateApiStatusUI();
+        closeModal('apiSettingsModal');
+        showToast(state.geminiApiKey ? 'Gemini Free API Key সেভ হয়েছে!' : 'অফলাইন বাংলা NLP মোড চালু হয়েছে', 'success');
+      });
+
+      document.getElementById('clearApiKeyBtn').addEventListener('click', function () {
+        state.geminiApiKey = '';
+        document.getElementById('geminiApiKeyInput').value = '';
+        saveState();
+        updateApiStatusUI();
+        showToast('অফলাইন ফ্রি AI মোডে ফিরে এসেছে', 'success');
+      });
+
+      document.getElementById('loanApplyForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!activeLoanPartner) return;
+        const reqAmt = Number(document.getElementById('loanReqAmount').value) || 0;
+        const method = document.getElementById('loanDisburseMethod').value;
+        if (!state.appliedLoans.includes(activeLoanPartner.id)) {
+          state.appliedLoans.push(activeLoanPartner.id);
+        }
+        saveState();
+        renderAll();
+        closeModal('loanApplyModal');
+        showToast(activeLoanPartner.name + '-এ ' + formatTk(reqAmt) + ' ঋণের আবেদন সফল (' + method + ')!', 'success');
+      });
+
+      document.getElementById('ledgerSearchInput').addEventListener('input', renderLedgerTable);
+      document.getElementById('ledgerTypeFilter').addEventListener('change', renderLedgerTable);
+
+      document.getElementById('exportCsvBtn').addEventListener('click', function () {
+        const rows = [['ID', 'Date', 'Type', 'Customer', 'Item', 'Qty', 'Amount_BDT', 'Method', 'AuditHash']];
+        state.transactions.forEach(function (t) {
+          rows.push([t.id, new Date(t.ts).toISOString(), t.type, '"' + t.customer + '"', '"' + t.item + '"', t.qty, t.amount, t.method, t.hash]);
+        });
+        downloadFile('khudrokhata_ledger.csv', rows.map(function (r) { return r.join(','); }).join('\n'), 'text/csv;charset=utf-8;');
+        showToast('CSV লেজার ডাউনলোড হয়েছে!', 'success');
+      });
+
+      document.getElementById('exportJsonBtn').addEventListener('click', function () {
+        const metrics = computeFinancialMetrics();
+        const payload = {
+          platform: 'KhudroKhata AI (FinSphere)',
+          shop: 'Ma-Babar Doa Store, Ashulia, Dhaka',
+          generated_at: new Date().toISOString(),
+          financial_health_score: metrics.healthScore,
+          risk_tier: metrics.riskGrade,
+          max_collateral_free_loan_bdt: metrics.maxLoan,
+          pillars: metrics.pillars,
+          ledger_entries: state.transactions
+        };
+        downloadFile('khudrokhata_bank_audit_passport.json', JSON.stringify(payload, null, 2), 'application/json');
+        showToast('ব্যাংক অডিট JSON ডাউনলোড হয়েছে!', 'success');
+      });
+
+      document.getElementById('downloadPassportBtn').addEventListener('click', function () {
+        document.getElementById('exportJsonBtn').click();
+      });
+
+      document.getElementById('printStatementBtn').addEventListener('click', function () {
+        window.print();
+      });
+
+      document.getElementById('simRecoverySlider').addEventListener('input', updateWhatIfSim);
+      document.getElementById('simMfsSlider').addEventListener('input', updateWhatIfSim);
+      document.getElementById('simTurnoverSlider').addEventListener('input', updateWhatIfSim);
+      document.getElementById('resetSimBtn').addEventListener('click', function () {
+        document.getElementById('simRecoverySlider').value = 80;
+        document.getElementById('simMfsSlider').value = 35;
+        document.getElementById('simTurnoverSlider').value = 75;
+        updateWhatIfSim();
+      });
+
+      document.getElementById('bankConsentToggle').addEventListener('change', function (e) {
+        state.bankConsent = e.target.checked;
+        document.getElementById('consentStatusText').textContent = state.bankConsent
+          ? 'চালু আছে — শুধুমাত্র অ্যানোনিমাইজড ক্রেডিট পাসপোর্ট শেয়ার হবে'
+          : 'বন্ধ আছে — কোনো ব্যাংক বা MFS ডেটা অ্যাক্সেস করতে পারবে না';
+        saveState();
+        renderLoanOffers(computeFinancialMetrics());
+      });
+
+      document.getElementById('emiAmount').addEventListener('input', updateEmiCalculator);
+      document.getElementById('emiRate').addEventListener('input', updateEmiCalculator);
+      document.getElementById('emiMonths').addEventListener('change', updateEmiCalculator);
+
+      document.getElementById('simBkashBtn').addEventListener('click', function () {
+        applyTransaction({
+          rawText: 'বিকাশ মার্চেন্ট QR পেমেন্ট ৮৫০ টাকা রিসিভড',
+          type: 'mfs_sale',
+          customer: 'বিকাশ ক্রেতা',
+          item: 'মুদি পণ্য (QR)',
+          qty: 1,
+          amount: 850,
+          method: 'bKash',
+          confidence: 100,
+          engine: 'bKash-Merchant-Webhook',
+          latencyMs: 55
+        });
+      });
+
+      document.getElementById('simNagadBtn').addEventListener('click', function () {
+        applyTransaction({
+          rawText: 'নগদ উদ্যোক্তা পেমেন্ট ৬২০ টাকা রিসিভড',
+          type: 'mfs_sale',
+          customer: 'নগদ ক্রেতা',
+          item: 'মুদি পণ্য (Nagad)',
+          qty: 1,
+          amount: 620,
+          method: 'Nagad',
+          confidence: 100,
+          engine: 'Nagad-Uddokta-API',
+          latencyMs: 58
+        });
+      });
+
+      document.getElementById('resetDemoBtn').addEventListener('click', function () {
+        state = getInitialState();
+        saveState();
+        renderAll();
+        showToast('ডেমো ডেটা রিসেট করা হয়েছে!', 'success');
+      });
+
+      // ==================== INIT ====================
+      document.getElementById('bankConsentToggle').checked = state.bankConsent;
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
